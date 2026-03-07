@@ -290,158 +290,161 @@ export function UserManagement({ userRole, investors }: UserManagementProps) {
         </Card>
 
         {/* Add User Modal */}
-        <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
-          <DialogContent className="bg-card max-w-2xl">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <UserPlus className="h-5 w-5 text-primary" />
-                Create New User Account
-              </DialogTitle>
-              <DialogDescription>
-                Create a new user account with specific role and permissions. For investors, link to their investor profile.
-              </DialogDescription>
-            </DialogHeader>
+       <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
+  <DialogContent className="bg-card max-w-2xl max-h-[90vh] flex flex-col">
+    <DialogHeader className="flex-shrink-0">
+      <DialogTitle className="flex items-center gap-2">
+        <UserPlus className="h-5 w-5 text-primary" />
+        Create New User Account
+      </DialogTitle>
+      <DialogDescription>
+        Create a new user account with specific role and permissions. For investors, link to their investor profile.
+      </DialogDescription>
+    </DialogHeader>
 
-            <div className="space-y-4 py-4">
-              {/* Name */}
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name *</Label>
-                <Input
-                  id="name"
-                  placeholder="Enter full name"
-                  value={newUser.name}
-                  onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
-                  className="bg-input-background"
-                />
-              </div>
+    {/* Scrollable content area */}
+    <div className="flex-1 overflow-y-auto px-1 py-4">
+      <div className="space-y-4">
+        {/* Name */}
+        <div className="space-y-2">
+          <Label htmlFor="name">Full Name *</Label>
+          <Input
+            id="name"
+            placeholder="Enter full name"
+            value={newUser.name}
+            onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+            className="bg-input-background"
+          />
+        </div>
 
-              {/* Email */}
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="user@example.com"
-                  value={newUser.email}
-                  onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                  className="bg-input-background"
-                />
-              </div>
+        {/* Email */}
+        <div className="space-y-2">
+          <Label htmlFor="email">Email Address *</Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="user@example.com"
+            value={newUser.email}
+            onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+            className="bg-input-background"
+          />
+        </div>
 
-              {/* Password */}
-              <div className="space-y-2">
-                <Label htmlFor="password">Password *</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter secure password"
-                    value={newUser.password}
-                    onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                    className="bg-input-background pr-10"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Password will be visible to you and can be shared with the user
-                </p>
-              </div>
-
-              {/* Role */}
-              <div className="space-y-2">
-                <Label htmlFor="role">User Role *</Label>
-                <Select 
-                  value={newUser.role} 
-                  onValueChange={(value) => setNewUser({ ...newUser, role: value as UserRole, investorId: '' })}
-                >
-                  <SelectTrigger className="bg-input-background">
-                    <SelectValue placeholder="Select role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Investor">Investor - Portal Access Only</SelectItem>
-                    <SelectItem value="Admin">Admin - Full Management Access</SelectItem>
-                    <SelectItem value="Operations">Operations - Operational Tasks</SelectItem>
-                    <SelectItem value="Driver">Driver - Limited Access</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  {newUser.role === 'Investor' && 'Investor users can only see their own portfolio'}
-                  {newUser.role === 'Admin' && 'Admin users have full access except user management'}
-                  {newUser.role === 'Operations' && 'Operations users can manage daily operations'}
-                  {newUser.role === 'Driver' && 'Driver users have limited access to specific features'}
-                </p>
-              </div>
-
-              {/* Investor Selection - Only for Investor Role */}
-              {newUser.role === 'Investor' && (
-                <div className="space-y-2">
-                  <Label htmlFor="investorId">Link to Investor Profile *</Label>
-                  <Select 
-                    value={newUser.investorId} 
-                    onValueChange={(value) => setNewUser({ ...newUser, investorId: value })}
-                  >
-                    <SelectTrigger className="bg-input-background">
-                      <SelectValue placeholder="Select investor profile" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {investors
-                        .filter(inv => !users.some(u => u.investorId === inv.id && u.status === 'Active'))
-                        .map((investor) => (
-                          <SelectItem key={investor.id} value={investor.id}>
-                            {investor.name} - {investor.contactNumber}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    This user will only see data related to the selected investor profile
-                  </p>
-                </div>
+        {/* Password */}
+        <div className="space-y-2">
+          <Label htmlFor="password">Password *</Label>
+          <div className="relative">
+            <Input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Enter secure password"
+              value={newUser.password}
+              onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+              className="bg-input-background pr-10"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <Eye className="h-4 w-4 text-muted-foreground" />
               )}
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Password will be visible to you and can be shared with the user
+          </p>
+        </div>
 
-              {/* Warning for Investor Role */}
-              {newUser.role === 'Investor' && (
-                <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                  <div className="flex gap-3">
-                    <Shield className="h-5 w-5 text-blue-500 flex-shrink-0" />
-                    <div className="text-sm">
-                      <p className="font-semibold text-blue-500 mb-1">Investor Account Restrictions</p>
-                      <ul className="text-muted-foreground space-y-1 list-disc list-inside">
-                        <li>Can only view their own investment portfolio</li>
-                        <li>Can see cars they have invested in</li>
-                        <li>Can view their profit/loss statements</li>
-                        <li>Cannot see other investors' data</li>
-                        <li>Cannot access system-wide financials</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+        {/* Role */}
+        <div className="space-y-2">
+          <Label htmlFor="role">User Role *</Label>
+          <Select 
+            value={newUser.role} 
+            onValueChange={(value) => setNewUser({ ...newUser, role: value as UserRole, investorId: '' })}
+          >
+            <SelectTrigger className="bg-input-background">
+              <SelectValue placeholder="Select role" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Investor">Investor - Portal Access Only</SelectItem>
+              <SelectItem value="Admin">Admin - Full Management Access</SelectItem>
+              <SelectItem value="Operations">Operations - Operational Tasks</SelectItem>
+              <SelectItem value="Driver">Driver - Limited Access</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">
+            {newUser.role === 'Investor' && 'Investor users can only see their own portfolio'}
+            {newUser.role === 'Admin' && 'Admin users have full access except user management'}
+            {newUser.role === 'Operations' && 'Operations users can manage daily operations'}
+            {newUser.role === 'Driver' && 'Driver users have limited access to specific features'}
+          </p>
+        </div>
 
-            <div className="flex gap-3 justify-end">
-              <Button variant="outline" onClick={() => setIsAddUserOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleAddUser}>
-                <UserPlus className="h-4 w-4 mr-2" />
-                Create User
-              </Button>
+        {/* Investor Selection - Only for Investor Role */}
+        {newUser.role === 'Investor' && (
+          <div className="space-y-2">
+            <Label htmlFor="investorId">Link to Investor Profile *</Label>
+            <Select 
+              value={newUser.investorId} 
+              onValueChange={(value) => setNewUser({ ...newUser, investorId: value })}
+            >
+              <SelectTrigger className="bg-input-background">
+                <SelectValue placeholder="Select investor profile" />
+              </SelectTrigger>
+              <SelectContent>
+                {investors
+                  .filter(inv => !users.some(u => u.investorId === inv.id && u.status === 'Active'))
+                  .map((investor) => (
+                    <SelectItem key={investor.id} value={investor.id}>
+                      {investor.name} - {investor.contactNumber}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              This user will only see data related to the selected investor profile
+            </p>
+          </div>
+        )}
+
+        {/* Warning for Investor Role */}
+        {newUser.role === 'Investor' && (
+          <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+            <div className="flex gap-3">
+              <Shield className="h-5 w-5 text-blue-500 flex-shrink-0" />
+              <div className="text-sm">
+                <p className="font-semibold text-blue-500 mb-1">Investor Account Restrictions</p>
+                <ul className="text-muted-foreground space-y-1 list-disc list-inside">
+                  <li>Can only view their own investment portfolio</li>
+                  <li>Can see cars they have invested in</li>
+                  <li>Can view their profit/loss statements</li>
+                  <li>Cannot see other investors' data</li>
+                  <li>Cannot access system-wide financials</li>
+                </ul>
+              </div>
             </div>
-          </DialogContent>
-        </Dialog>
+          </div>
+        )}
+      </div>
+    </div>
+
+    <div className="flex gap-3 justify-end flex-shrink-0 pt-4 border-t">
+      <Button variant="outline" onClick={() => setIsAddUserOpen(false)}>
+        Cancel
+      </Button>
+      <Button onClick={handleAddUser}>
+        <UserPlus className="h-4 w-4 mr-2" />
+        Create User
+      </Button>
+    </div>
+  </DialogContent>
+</Dialog>
       </div>
     </div>
   );

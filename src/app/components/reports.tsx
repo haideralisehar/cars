@@ -67,7 +67,11 @@ const mockProfitabilityData = [
 
 const COLORS = ['#ff6b35', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
-export function Reports() {
+interface ReportsProps {
+  userRole: 'Admin' | 'Super Admin' | 'User' | 'Operations' | 'Driver' | 'Investor';
+}
+
+export function Reports({ userRole }: ReportsProps) {
   const [selectedReport, setSelectedReport] = useState<ReportType>(null);
   const [dateRange, setDateRange] = useState({ start: '2025-01-01', end: '2025-06-30' });
 

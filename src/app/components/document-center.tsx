@@ -22,13 +22,17 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+interface DocumentCenterProps {
+  userRole: 'Admin' | 'Super Admin' | 'User' | 'Operations' | 'Driver' | 'Investor';
+}
+
 interface LineItem {
   id: string;
   description: string;
   amount: number;
 }
 
-export function DocumentCenter() {
+export function DocumentCenter({ userRole }: DocumentCenterProps) {
   const [docType, setDocType] = useState('invoice');
   const [recipient, setRecipient] = useState('');
   const [lineItems, setLineItems] = useState<LineItem[]>([
