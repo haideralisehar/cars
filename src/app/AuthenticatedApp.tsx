@@ -22,6 +22,7 @@ import { CreateMoneyRecord } from '@/app/components/create-money-record';
 import { MoneyRecordDetails } from '@/app/components/money-record-details';
 import { mockMoneyRecords } from '@/types/money-record';
 import { mockCars } from '@/data/mockData';
+import { refreshToken } from "./api/Auth/refresh";
 import { 
   LayoutDashboard, 
   Car as CarIcon, 
@@ -132,6 +133,18 @@ export default function AuthenticatedApp({ user, onLogout }) {
     return mockCars.find((car) => car.id === carId);
   };
 
+  
+
+const handleRefresh = async () => {
+  const newToken = await refreshToken();
+
+  if (newToken) {
+    console.log("New access token:", newToken);
+  } else {
+    console.log("User must login again");
+  }
+};
+
   const sellCar = getSelectedCar(sellCarModal.carId);
   const leaseCar = getSelectedCar(leaseCarModal.carId);
   const expenseCar = getSelectedCar(expenseModal.carId);
@@ -226,6 +239,8 @@ export default function AuthenticatedApp({ user, onLogout }) {
               <CarIcon className="h-4 w-4 mr-3" />
               {!sidebarCollapsed && 'Cars Inventory'}
             </Button>
+
+            {/* <button onClick={handleRefresh}>refresh</button> */}
 
             {(user.role === 'Admin' || user.role === 'Super Admin') && (
               <Button

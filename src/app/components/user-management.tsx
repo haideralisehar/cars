@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 
 interface UserManagementProps {
-  userRole: 'Super Admin';
+  userRole: 'SuperAdmin';
   investors: Investor[];
 }
 

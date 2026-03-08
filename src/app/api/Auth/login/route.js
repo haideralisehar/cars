@@ -16,13 +16,14 @@ export async function POST(req) {
             password: password,
         };
 
-        const apiUrl = `https://cityinbookingapi20251018160614-fxgqdkc6d4hwgjf8.canadacentral-01.azurewebsites.net/api/Auth/login/verify-otp`;
+        const apiUrl = `https://carsappapis20260306224811-h5abbce0g9fjajhz.canadacentral-01.azurewebsites.net/api/Auth/login`;
 
         const response = await fetch(apiUrl, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
+            credentials: "include",
             body: JSON.stringify(payload),
         });
 
@@ -56,7 +57,7 @@ export async function POST(req) {
                 res.cookies.set("refreshToken", refreshToken, {
                     httpOnly: true,
                     secure: true,
-                    sameSite: "strict",
+                    sameSite: "none",
                     path: "/",
                     maxAge: 14 * 24 * 60 * 60
 
@@ -69,7 +70,7 @@ export async function POST(req) {
             res.cookies.set("token", token, {
                 httpOnly: true,
                 secure: true,
-                sameSite: "strict",
+                sameSite: "none",
                 path: "/",
                 maxAge: 14 * 24 * 60 * 60
             });

@@ -6,7 +6,7 @@ export async function POST(req) {
   const refreshToken = cookieStore.get("refreshToken")?.value;
 
   const backendRes = await fetch(
-    "https://cityinbookingapi20251018160614-fxgqdkc6d4hwgjf8.canadacentral-01.azurewebsites.net/api/Auth/refresh",
+    "https://carsappapis20260306224811-h5abbce0g9fjajhz.canadacentral-01.azurewebsites.net/api/Auth/refresh",
     {
       method: "POST",
       credentials: "include",
