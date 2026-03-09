@@ -1,10 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/app/components/ui/card';
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
 import { Plus, ShoppingCart, Key, DollarSign, Edit } from 'lucide-react';
 import { Car } from '@/types';
-import { mockCars } from '@/data/mockData';
 
 interface CarsInventoryProps {
   onAddNewCar: () => void;
@@ -23,11 +22,40 @@ export function CarsInventory({
   onAddExpense,
   userRole,
 }: CarsInventoryProps) {
-  const [cars] = useState<Car[]>(mockCars);
 
-  const isAdmin = userRole === 'Admin' || userRole === 'Super Admin';
+  const [cars, setCars] = useState<Car[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const isAdmin = userRole === 'Admin' || userRole === 'SuperAdmin';
   const isSuperAdmin = userRole === 'Super Admin';
   const canAddExpense = isAdmin || userRole === 'Operations' || userRole === 'Driver';
+
+  // Fetch Cars
+  useEffect(() => {
+    fetchCars();
+  }, []);
+
+  const fetchCars = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch("https://your-api.com/api/cars", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      setCars(data.cars || data); 
+    } catch (error) {
+      console.error("Failed to fetch cars:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getStatusColor = (status: Car['status']) => {
     switch (status) {
@@ -55,15 +83,25 @@ export function CarsInventory({
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
+
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Cars Inventory</h1>
             <p className="text-muted-foreground mt-1">{cars.length} total vehicles</p>
           </div>
+
           {isAdmin && (
             <Button onClick={onAddNewCar} size="lg">
               <Plus className="h-5 w-5 mr-2" />
@@ -73,50 +111,71 @@ export function CarsInventory({
         </div>
 
         {/* Cars Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        {cars.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {cars.map((car) => (
             <Card
               key={car.id}
-              className={`bg-card border-border overflow-hidden transition-all group ${isAdmin ? 'hover:border-primary cursor-pointer' : 'cursor-default'}`}
+              className={`bg-card border-border overflow-hidden transition-all group ${
+                isAdmin ? 'hover:border-primary cursor-pointer' : 'cursor-default'
+              }`}
             >
+
               {/* Image */}
               <div
                 onClick={() => isAdmin && onCarClick(car.id)}
                 className="relative h-48 bg-secondary overflow-hidden"
               >
                 <img
-                  src={car.images[0]}
+                  src={car.images?.[0]}
                   alt={`${car.make} ${car.model}`}
-                  className={`w-full h-full object-cover transition-transform ${isAdmin ? 'group-hover:scale-105' : ''}`}
+                  className={`w-full h-full object-cover transition-transform ${
+                    isAdmin ? 'group-hover:scale-105' : ''
+                  }`}
                 />
+
                 <div className="absolute top-3 right-3 flex gap-2">
-                  <Badge className={getStatusColor(car.status)}>{car.status}</Badge>
+                  <Badge className={getStatusColor(car.status)}>
+                    {car.status}
+                  </Badge>
                 </div>
               </div>
 
               {/* Content */}
-              <CardContent className="p-4" onClick={() => isAdmin && onCarClick(car.id)}>
+              <CardContent
+                className="p-4"
+                onClick={() => isAdmin && onCarClick(car.id)}
+              >
                 <div className="space-y-3">
                   <div>
                     <h3 className="font-semibold text-lg text-foreground">
                       {car.make} {car.model}
                     </h3>
+
                     <p className="text-sm text-muted-foreground">
                       {car.year} • {car.color}
                     </p>
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <Badge className={getSourceColor(car.source)} variant="secondary">
+                    <Badge
+                      className={getSourceColor(car.source)}
+                      variant="secondary"
+                    >
                       {car.source}
                     </Badge>
-                    <p className="text-sm text-muted-foreground">{car.registrationNumber}</p>
+
+                    <p className="text-sm text-muted-foreground">
+                      {car.registrationNumber}
+                    </p>
                   </div>
                 </div>
               </CardContent>
 
               {/* Actions */}
               <div className="px-4 pb-4 flex flex-wrap gap-2">
+
                 {car.status === 'Available' && isAdmin && (
                   <>
                     <Button
@@ -131,6 +190,7 @@ export function CarsInventory({
                       <ShoppingCart className="h-4 w-4 mr-1" />
                       Sell
                     </Button>
+
                     <Button
                       variant="outline"
                       size="sm"
@@ -145,6 +205,7 @@ export function CarsInventory({
                     </Button>
                   </>
                 )}
+
                 {isAdmin && (
                   <Button
                     variant="ghost"
@@ -152,12 +213,12 @@ export function CarsInventory({
                     className="flex-shrink-0"
                     onClick={(e) => {
                       e.stopPropagation();
-                      // onEditCar(car.id) - will be handled via state
                     }}
                   >
                     <Edit className="h-4 w-4 text-primary" />
                   </Button>
                 )}
+
                 {canAddExpense && (
                   <Button
                     variant="outline"
@@ -172,10 +233,17 @@ export function CarsInventory({
                     {!isAdmin && "Add Expense"}
                   </Button>
                 )}
+
               </div>
             </Card>
           ))}
         </div>
+        ):<div className="flex items-center justify-center h-screen">
+  <p className="text-lg font-medium text-muted-foreground">
+    No Records Found...
+  </p>
+</div>}
+
       </div>
     </div>
   );

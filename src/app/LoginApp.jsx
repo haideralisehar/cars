@@ -8,17 +8,18 @@ import { Label } from '@/app/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/app/components/ui/card';
 import { LogIn, Eye, EyeOff } from 'lucide-react';
 import { usersStore } from '@/data/usersStore';
-import {loginUser} from "../app/api/Auth/login";
+import { loginUser } from "../app/api/Auth/login";
 import { useNavigate } from "react-router-dom";
 
 export default function LoginApp() {
-   const navigate = useNavigate();
+  const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   // const handleLogins = (e) => {
   //   e.preventDefault();
@@ -34,39 +35,39 @@ export default function LoginApp() {
   //   }
   // };
 
-//  const handleLogin = async (e) => {
-//   e.preventDefault();
-//   setError("");
+  //  const handleLogin = async (e) => {
+  //   e.preventDefault();
+  //   setError("");
 
-//   try {
-//     const res = await fetch(
-//       "https://carsappapis20260306224811-h5abbce0g9fjajhz.canadacentral-01.azurewebsites.net/api/Auth/login",
-//       {
-//         method: "POST",
-//         headers: {
-//           "Content-Type": "application/json",
-//         },
-//         body: JSON.stringify({
-//           email,
-//           password,
-//         }),
-//       }
-//     );
+  //   try {
+  //     const res = await fetch(
+  //       "https://carsappapis20260306224811-h5abbce0g9fjajhz.canadacentral-01.azurewebsites.net/api/Auth/login",
+  //       {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify({
+  //           email,
+  //           password,
+  //         }),
+  //       }
+  //     );
 
-//     const data = await res.json();
+  //     const data = await res.json();
 
-//     if (!res.ok) {
-//       throw new Error(data.message || "Login failed");
-//     }
+  //     if (!res.ok) {
+  //       throw new Error(data.message || "Login failed");
+  //     }
 
-//     console.log("Login success", data);
+  //     console.log("Login success", data);
 
-//   } catch (err) {
-//     setError(err.message || "Login failed");
-//   }
-// };
+  //   } catch (err) {
+  //     setError(err.message || "Login failed");
+  //   }
+  // };
 
-useEffect(() => {
+  useEffect(() => {
     const token = Cookies.get("token");
 
     if (token) {
@@ -75,23 +76,21 @@ useEffect(() => {
   }, []);
 
 
-const handleLogin = async (e) => {
-   e.preventDefault();
-  
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
-  const result = await loginUser(email, password);
+    const result = await loginUser(email, password);
 
-  if (result?.success) {
-    console.log("User logged in");
-     navigate("/dashboard");
-  }
-};
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setCurrentUser(null);
-    setEmail('');
-    setPassword('');
-    setError('');
+    setLoading(false);
+
+    if (result?.success) {
+      console.log("User logged in");
+      navigate("/dashboard");
+    } else {
+      setError(result?.message || "Invalid email or password");
+    }
   };
 
   if (isAuthenticated && currentUser) {
@@ -174,14 +173,22 @@ const handleLogin = async (e) => {
               )}
 
               {/* Login Button */}
-              <Button type="submit" className="w-full">
-                <LogIn className="h-4 w-4 mr-2" />
-                Sign In
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="h-4 w-4 mr-2" />
+                    Sign In
+                  </>
+                )}
               </Button>
             </form>
 
             {/* Demo Credentials */}
-            <div className="mt-6 p-4 bg-secondary rounded-lg border border-border">
+            {/* <div className="mt-6 p-4 bg-secondary rounded-lg border border-border">
               <p className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
                 Demo Credentials
               </p>
@@ -221,7 +228,7 @@ const handleLogin = async (e) => {
                   </span>
                 </div>
               </div>
-            </div>
+            </div> */}
           </CardContent>
         </Card>
       </div>

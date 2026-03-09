@@ -242,7 +242,7 @@ const handleRefresh = async () => {
 
             {/* <button onClick={handleRefresh}>refresh</button> */}
 
-            {(user.role === 'Admin' || user.role === 'Super Admin') && (
+            {(user.role === 'Admin' || user.role === 'SuperAdmin') && (
               <Button
                 variant={currentView === 'money-records' || currentView === 'create-money-record' || currentView === 'money-record-details' ? 'default' : 'ghost'}
                 className="w-full justify-start"
@@ -253,7 +253,7 @@ const handleRefresh = async () => {
               </Button>
             )}
 
-            {(user.role === 'Admin' || user.role === 'Super Admin') && (
+            {(user.role === 'Admin' || user.role === 'SuperAdmin') && (
               <Button
                 variant={currentView === 'cash-flow' ? 'default' : 'ghost'}
                 className="w-full justify-start"
@@ -264,7 +264,7 @@ const handleRefresh = async () => {
               </Button>
             )}
 
-            {(user.role === 'Admin' || user.role === 'Super Admin') && (
+            {(user.role === 'Admin' || user.role === 'SuperAdmin') && (
               <Button
                 variant={currentView === 'investors' ? 'default' : 'ghost'}
                 className="w-full justify-start"
@@ -302,7 +302,7 @@ const handleRefresh = async () => {
               {!sidebarCollapsed && 'Documents'}
             </Button>
 
-            {(user.role === 'Admin' || user.role === 'Super Admin') && (
+            {(user.role === 'Admin' || user.role === 'SuperAdmin') && (
               <Button
                 variant={currentView === 'reports' ? 'default' : 'ghost'}
                 className="w-full justify-start"
@@ -313,7 +313,7 @@ const handleRefresh = async () => {
               </Button>
             )}
 
-            {user.role === 'Super Admin' && (
+            {user.role === 'SuperAdmin' && (
               <Button
                 variant={currentView === 'admin' ? 'default' : 'ghost'}
                 className="w-full justify-start"
@@ -324,7 +324,7 @@ const handleRefresh = async () => {
               </Button>
             )}
 
-            {user.role === 'Super Admin' && (
+            {user.role === 'SuperAdmin' && (
               <Button
                 variant={currentView === 'user-management' ? 'default' : 'ghost'}
                 className="w-full justify-start"
@@ -417,8 +417,8 @@ const handleRefresh = async () => {
           {currentView === 'lease' && <LeaseList onCarClick={handleNavigateToCar} />}
           {currentView === 'documents' && <DocumentCenter userRole={user.role} />}
           {currentView === 'reports' && <Reports userRole={user.role} />}
-          {currentView === 'admin' && user.role === 'Super Admin' && <AdminPanel userRole={user.role} />}
-          {currentView === 'user-management' && user.role === 'Super Admin' && (
+          {currentView === 'admin' && user.role === 'SuperAdmin' && <AdminPanel userRole={user.role} />}
+          {currentView === 'user-management' && user.role === 'SuperAdmin' && (
             <UserManagement userRole={user.role} investors={mockInvestors} />
           )}
           

@@ -19,7 +19,7 @@ export const refreshToken = async () => {
           Cookies.set("token", data.token, {
             expires: 14,
             secure: true,
-            sameSite: "None",
+            sameSite: "strict",
           });
 
     return data.token;
