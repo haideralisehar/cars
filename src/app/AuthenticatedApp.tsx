@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { ThemeProvider } from '@/app/components/theme-provider';
 import { Dashboard } from '@/app/components/dashboard';
 import { CarsInventory } from '@/app/components/cars-inventory';
@@ -91,37 +91,52 @@ export default function AuthenticatedApp({ user, onLogout }) {
     return 'dashboard';
   };
 
+  
+
   const [currentView, setCurrentView] = useState(getInitialView());
+  const [selectedCar, setSelectedCar] = useState(null);
   const [selectedCarId, setSelectedCarId] = useState(null);
   const [selectedMoneyRecordId, setSelectedMoneyRecordId] = useState(null);
   const [moneyRecordInitialTab, setMoneyRecordInitialTab] = useState('all');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isLoadingCar, setIsLoadingCar] = useState(false);
   
   // Modal states
   const [sellCarModal, setSellCarModal] = useState({
     isOpen: false,
-    carId: null,
+    car: null
   });
+
   const [leaseCarModal, setLeaseCarModal] = useState({
     isOpen: false,
-    carId: null,
+    car: null
   });
+  
   const [expenseModal, setExpenseModal] = useState({
     isOpen: false,
     carId: null,
   });
 
-  const handleNavigateToCar = (carId) => {
-    setSelectedCarId(carId);
+  const handleNavigateToCar = (car) => {
+    setIsLoadingCar(true);
+    setSelectedCar(car);
+    setSelectedCarId(car.id);
     setCurrentView('car-details');
+    setIsLoadingCar(false);
   };
 
-  const handleSellCar = (carId) => {
-    setSellCarModal({ isOpen: true, carId });
+  const handleSellCar = (car) => {
+    setSellCarModal({
+      isOpen: true,
+      car: car
+    });
   };
 
-  const handleLeaseCar = (carId) => {
-    setLeaseCarModal({ isOpen: true, carId });
+  const handleLeaseCar = (car) => {
+    setLeaseCarModal({
+      isOpen: true,
+      car: car
+    });
   };
 
   const handleAddExpense = (carId) => {
@@ -133,20 +148,18 @@ export default function AuthenticatedApp({ user, onLogout }) {
     return mockCars.find((car) => car.id === carId);
   };
 
-  
+  const handleRefresh = async () => {
+    const newToken = await refreshToken();
 
-const handleRefresh = async () => {
-  const newToken = await refreshToken();
+    if (newToken) {
+      console.log("New access token:", newToken);
+    } else {
+      console.log("User must login again");
+    }
+  };
 
-  if (newToken) {
-    console.log("New access token:", newToken);
-  } else {
-    console.log("User must login again");
-  }
-};
-
-  const sellCar = getSelectedCar(sellCarModal.carId);
-  const leaseCar = getSelectedCar(leaseCarModal.carId);
+  const sellCar = getSelectedCar(sellCarModal.car?.id);
+  const leaseCar = getSelectedCar(leaseCarModal.car?.id);
   const expenseCar = getSelectedCar(expenseModal.carId);
 
   // Investor-specific filtering
@@ -386,30 +399,40 @@ const handleRefresh = async () => {
               onCancel={() => setCurrentView('cars')}
             />
           )}
-          {currentView === 'edit-car' && selectedCarId && (() => {
-            const carToEdit = mockCars.find(c => c.id === selectedCarId);
-            return carToEdit ? (
-              <EditCarForm 
-                car={carToEdit}
-                onSave={(updatedCar) => {
-                  console.log('Saving car updates:', updatedCar);
-                  // In a real app, this would call an API to update the car
-                  setCurrentView('car-details');
-                }}
-                onCancel={() => setCurrentView('car-details')}
-              />
-            ) : null;
-          })()}
-          {currentView === 'car-details' && selectedCarId && (
-            <CarDetails 
-              carId={selectedCarId} 
-              onBack={() => setCurrentView('cars')} 
-              onEdit={() => setCurrentView('edit-car')}
-              onSellCar={handleSellCar}
-              onLeaseCar={handleLeaseCar}
-              onAddExpense={handleAddExpense}
-              userRole={user.role}
+          {currentView === 'edit-car' && selectedCar && (
+            <EditCarForm 
+              car={selectedCar}
+              onSave={(updatedCar) => {
+                console.log('Saving car updates:', updatedCar);
+                setSelectedCar(updatedCar);
+                setCurrentView('car-details');
+              }}
+              onCancel={() => setCurrentView('car-details')}
             />
+          )}
+          {currentView === 'car-details' && (
+            isLoadingCar ? (
+              <div className="flex justify-center items-center h-screen">
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            ) : selectedCar && (
+              <CarDetails 
+                car={selectedCar}
+                onBack={() => {
+                  setCurrentView('cars');
+                  setSelectedCar(null);
+                }} 
+                onEdit={() => setCurrentView('edit-car')}
+                onViewRecord={(id) => {
+                  setSelectedMoneyRecordId(id);
+                  setCurrentView('money-record-details');
+                }}
+                onSellCar={handleSellCar}
+                onLeaseCar={handleLeaseCar}
+                onAddExpense={handleAddExpense}
+                userRole={user.role}
+              />
+            )
           )}
           {currentView === 'cash-flow' && <CashFlow userRole={user.role} />}
           {currentView === 'investors' && <Investors userRole={user.role} />}
@@ -422,30 +445,47 @@ const handleRefresh = async () => {
             <UserManagement userRole={user.role} investors={mockInvestors} />
           )}
           
-          {currentView === 'money-records' && <MoneyRecordsList userRole={user.role} onViewDetails={(id) => {
-            setSelectedMoneyRecordId(id);
-            setCurrentView('money-record-details');
-          }} onAddRecord={() => setCurrentView('create-money-record')} />}
-          {currentView === 'create-money-record' && <CreateMoneyRecord userRole={user.role} onBack={() => setCurrentView('money-records')} initialTab={moneyRecordInitialTab} />}
+          {currentView === 'money-records' && (
+            <MoneyRecordsList 
+              userRole={user.role} 
+              onViewDetails={(id) => {
+                setSelectedMoneyRecordId(id);
+                setCurrentView('money-record-details');
+              }} 
+              onAddRecord={() => setCurrentView('create-money-record')} 
+            />
+          )}
+          {currentView === 'create-money-record' && (
+            <CreateMoneyRecord 
+              userRole={user.role} 
+              onBack={() => setCurrentView('money-records')} 
+              initialTab={moneyRecordInitialTab} 
+            />
+          )}
           {currentView === 'money-record-details' && selectedMoneyRecordId && (
-            <MoneyRecordDetails recordId={selectedMoneyRecordId} userRole={user.role} onBack={() => setCurrentView('money-records')} />
+            <MoneyRecordDetails 
+              recordId={selectedMoneyRecordId} 
+              userRole={user.role} 
+              onBack={() => setCurrentView('money-records')} 
+            />
           )}
         </div>
 
         {/* Modals */}
-        {sellCar && (
+        {sellCarModal.car && (
           <SellCarModal
+            carId={sellCarModal.car.id}
             isOpen={sellCarModal.isOpen}
-            onClose={() => setSellCarModal({ isOpen: false, carId: null })}
-            car={sellCar}
+            onClose={() => setSellCarModal({ isOpen: false, car: null })}
+            car={sellCarModal.car}
             userRole={user.role}
           />
         )}
-        {leaseCar && (
+        {leaseCarModal.car && (
           <LeaseCarModal
             isOpen={leaseCarModal.isOpen}
-            onClose={() => setLeaseCarModal({ isOpen: false, carId: null })}
-            car={leaseCar}
+            onClose={() => setLeaseCarModal({ isOpen: false, car: null })}
+            car={leaseCarModal.car}
             userRole={user.role}
           />
         )}

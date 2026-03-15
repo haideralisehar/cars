@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 
 interface CashFlowProps {
-  userRole: 'Admin' | 'Super Admin' | 'User' | 'Operations' | 'Driver' | 'Investor';
+  userRole: 'Admin' | 'SuperAdmin' | 'User' | 'Operations' | 'Driver' | 'Investor';
 }
 
 type AllocationStatus = 'Not Allocated' | 'Partially Allocated' | 'Fully Allocated';
@@ -199,7 +199,7 @@ export function CashFlow({ userRole }: CashFlowProps) {
   const isAllocationValid = remaining === 0 && allocationRows.every((r) => r.usageType && r.amount);
 
   // Check if user has access
-  const hasAccess = userRole === 'Admin' || userRole === 'Super Admin';
+  const hasAccess = userRole === 'Admin' || userRole === 'SuperAdmin';
 
   if (!hasAccess) {
     return (

@@ -1,40 +1,37 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/app/components/ui/card';
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
 import { Input } from '@/app/components/ui/input';
-import { MoneyRecord, mockMoneyRecords } from '@/types/money-record';
-import { Car } from '@/types';
-import { mockCars, mockInstallments } from '@/data/mockData';
+import { mockMoneyRecords } from '@/types/money-record';
+import { mockInstallments } from '@/data/mockData';
 import { ArrowLeft, Edit, FileText, Download, Wallet, Calendar, Upload, X } from 'lucide-react';
 
-interface CarDetailsProps {
-  carId: string;
-  userRole: 'Admin' | 'Super Admin' | 'User' | 'Operations' | 'Driver' | 'Investor';
-  onBack: () => void;
-  onEdit?: () => void;
-  onViewRecord?: (id: string) => void;
-  onSellCar?: (carId: string) => void;
-  onLeaseCar?: (carId: string) => void;
-  onAddExpense?: (carId: string) => void;
-}
-
-export function CarDetails({ carId, userRole, onBack, onEdit, onViewRecord, onSellCar, onLeaseCar, onAddExpense }: CarDetailsProps) {
-  const car = mockCars.find((c) => c.id === carId);
-  const carMoneyRecords = mockMoneyRecords.filter((r) => r.linkedToId === carId);
+export function CarDetails({ 
+  car, 
+  userRole, 
+  onBack, 
+  onEdit, 
+  onViewRecord, 
+  onSellCar, 
+  onLeaseCar, 
+  onAddExpense 
+}) {
+  
+  const carMoneyRecords = mockMoneyRecords.filter((r) => r.linkedToId === car?.id);
   const carExpenses = carMoneyRecords.filter(r => r.isPayable && r.category === 'Expense');
-  const carInstallments = mockInstallments.filter((i) => i.carId === carId);
+  const carInstallments = mockInstallments.filter((i) => i.carId === car?.id);
   
   // Document state
-  const [documents, setDocuments] = useState<{ [key: string]: string }>(car?.documents || {});
-  const [uploadingDoc, setUploadingDoc] = useState<string | null>(null);
+  const [documents, setDocuments] = useState(car?.documents || {});
+  const [uploadingDoc, setUploadingDoc] = useState(null);
   const [isAddingOther, setIsAddingOther] = useState(false);
   const [newDocName, setNewDocName] = useState('');
 
-  const isAdmin = userRole === 'Admin' || userRole === 'Super Admin';
+  const isAdmin = userRole === 'Admin' || userRole === 'SuperAdmin';
   
-  const handleDocumentUpload = (docType: string, file: File) => {
+  const handleDocumentUpload = (docType, file) => {
     setUploadingDoc(docType);
     
     // Simulate file upload
@@ -49,7 +46,7 @@ export function CarDetails({ carId, userRole, onBack, onEdit, onViewRecord, onSe
     }, 1000);
   };
   
-  const handleDocumentRemove = (docType: string) => {
+  const handleDocumentRemove = (docType) => {
     setDocuments(prev => {
       const updated = { ...prev };
       delete updated[docType];
@@ -81,7 +78,7 @@ export function CarDetails({ carId, userRole, onBack, onEdit, onViewRecord, onSe
     { id: '3', type: 'Expense', description: 'Front bumper repair - $850', timestamp: '2025-01-25', user: 'Technician' },
   ];
 
-  const getStatusColor = (status: Car['status']) => {
+  const getStatusColor = (status) => {
     switch (status) {
       case 'Available':
         return 'bg-primary text-primary-foreground';
@@ -103,7 +100,7 @@ export function CarDetails({ carId, userRole, onBack, onEdit, onViewRecord, onSe
             <ArrowLeft className="h-5 w-5 mr-2" />
             Back to Inventory
           </Button>
-          {(userRole === 'Admin' || userRole === 'Super Admin') && onEdit && (
+          {isAdmin && onEdit && (
             <Button onClick={onEdit}>
               <Edit className="h-4 w-4 mr-2" />
               Edit Car
@@ -118,7 +115,7 @@ export function CarDetails({ carId, userRole, onBack, onEdit, onViewRecord, onSe
               {/* Image */}
               <div className="relative h-80 bg-secondary rounded-lg overflow-hidden">
                 <img
-                  src={car.images[0]}
+                  src={car.images?.[0] || 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&h=500&fit=crop'}
                   alt={`${car.make} ${car.model}`}
                   className="w-full h-full object-cover"
                 />
@@ -132,7 +129,7 @@ export function CarDetails({ carId, userRole, onBack, onEdit, onViewRecord, onSe
                   </h1>
                   <div className="flex gap-2">
                     <Badge className={getStatusColor(car.status)}>{car.status}</Badge>
-                    <Badge variant="outline">{car.source}</Badge>
+                    <Badge variant="outline">{car.carSource}</Badge>
                   </div>
                 </div>
 
@@ -158,7 +155,7 @@ export function CarDetails({ carId, userRole, onBack, onEdit, onViewRecord, onSe
                 <div className="pt-4 border-t border-border">
                   <p className="text-sm text-muted-foreground mb-1">Asking Price</p>
                   <p className="text-3xl font-bold text-primary">
-                    ${car.askingPrice.toLocaleString()}
+                    BD {" "}{car?.financialDetails?.askingPrice}
                   </p>
                 </div>
               </div>
@@ -170,7 +167,7 @@ export function CarDetails({ carId, userRole, onBack, onEdit, onViewRecord, onSe
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList className="bg-card">
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            {(userRole === 'Admin' || userRole === 'Super Admin') && (
+            {isAdmin && (
               <TabsTrigger value="financials">Financials</TabsTrigger>
             )}
             <TabsTrigger value="installments">Installments</TabsTrigger>
@@ -206,6 +203,22 @@ export function CarDetails({ carId, userRole, onBack, onEdit, onViewRecord, onSe
                         <span className="text-muted-foreground">Color:</span>
                         <span className="font-medium">{car.color}</span>
                       </div>
+                      {/* <div className="flex justify-between">
+                        <span className="text-muted-foreground">Mileage:</span>
+                        <span className="font-medium">{car.mileage?.toLocaleString()} km</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Engine:</span>
+                        <span className="font-medium">{car.engine}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Transmission:</span>
+                        <span className="font-medium">{car.transmission}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Fuel Type:</span>
+                        <span className="font-medium">{car.fuelType}</span>
+                      </div> */}
                     </div>
                   </div>
                   <div>
@@ -213,7 +226,7 @@ export function CarDetails({ carId, userRole, onBack, onEdit, onViewRecord, onSe
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Source:</span>
-                        <span className="font-medium">{car.source}</span>
+                        <span className="font-medium">{car.carSource}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Status:</span>
@@ -225,7 +238,27 @@ export function CarDetails({ carId, userRole, onBack, onEdit, onViewRecord, onSe
                           {new Date(car.createdAt).toLocaleDateString()}
                         </span>
                       </div>
+                      {car.carSource === 'Investor' && car.investorId && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Investor ID:</span>
+                          <span className="font-medium">{car.investorId}</span>
+                        </div>
+                      )}
                     </div>
+
+                    {/* <h4 className="font-medium mb-3 mt-6">Purchase Details</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Buying Price:</span>
+                        <span className="font-medium">${car.buyingPrice?.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Purchase Date:</span>
+                        <span className="font-medium">
+                          {car.purchaseDate ? new Date(car.purchaseDate).toLocaleDateString() : 'N/A'}
+                        </span>
+                      </div>
+                    </div> */}
                   </div>
                 </div>
 
@@ -239,7 +272,11 @@ export function CarDetails({ carId, userRole, onBack, onEdit, onViewRecord, onSe
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Lease Amount:</span>
-                        <span className="font-medium">${car.leaseAmount}</span>
+                        <span className="font-medium">${car.leaseAmount?.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Lease Duration:</span>
+                        <span className="font-medium">{car.leaseDuration} months</span>
                       </div>
                     </div>
                   </div>
@@ -260,7 +297,7 @@ export function CarDetails({ carId, userRole, onBack, onEdit, onViewRecord, onSe
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="p-4 bg-secondary rounded-lg">
                         <p className="text-sm text-muted-foreground mb-1">Buying Cost (Base)</p>
-                        <p className="text-2xl font-bold">BHD {car.buyingPrice.toLocaleString()}</p>
+                        <p className="text-2xl font-bold">BHD {car.buyingPrice?.toLocaleString()}</p>
                       </div>
                       <div className="p-4 bg-secondary rounded-lg">
                         <p className="text-sm text-muted-foreground mb-1">Total Expenses</p>
@@ -278,7 +315,7 @@ export function CarDetails({ carId, userRole, onBack, onEdit, onViewRecord, onSe
                       <div className="p-4 bg-secondary rounded-lg">
                         <p className="text-sm text-muted-foreground mb-1">Selling Price</p>
                         <p className="text-2xl font-bold text-primary">
-                          BHD {car.askingPrice.toLocaleString()}
+                          BHD {car.askingPrice?.toLocaleString()}
                         </p>
                       </div>
                       <div className="p-4 bg-secondary rounded-lg">
@@ -301,7 +338,7 @@ export function CarDetails({ carId, userRole, onBack, onEdit, onViewRecord, onSe
                           <div className="flex justify-between items-center">
                             <span className="text-muted-foreground text-sm">Lease Income (Total):</span>
                             <span className="font-medium text-green-500">
-                              BHD {(car.leaseEnabled ? car.leaseAmount * 5 : 0).toLocaleString()}
+                              BHD {(car.leaseEnabled && car.leaseAmount ? car.leaseAmount * (car.leaseDuration || 1) : 0).toLocaleString()}
                             </span>
                           </div>
                         </div>

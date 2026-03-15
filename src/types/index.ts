@@ -1,8 +1,8 @@
 export type CarStatus = 'Available' | 'Sold' | 'Leased';
-export type CarSource = 'Company' | 'Investor' | 'Customer';
+export type CarSource = 'Company Car' | 'Investor' | 'Customer';
 export type PaymentType = 'Full' | 'Installment';
 export type LeaseType = 'Daily' | 'Monthly';
-export type UserRole = 'Admin' | 'Super Admin' | 'User' | 'Operations' | 'Driver' | 'Investor';
+export type UserRole = 'Admin' | 'SuperAdmin' | 'User' | 'Operations' | 'Driver' | 'Investor';
 export type AlertType = 'Insurance' | 'Registration' | 'LeaseRent' | 'Installment';
 
 export interface Car {
@@ -14,7 +14,7 @@ export interface Car {
   color: string;
   registrationNumber: string;
   status: CarStatus;
-  source: CarSource;
+  carSource: CarSource;
   images: string[];
   
   // Financial details

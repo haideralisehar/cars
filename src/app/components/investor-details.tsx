@@ -18,13 +18,13 @@ import {
 
 interface InvestorDetailsProps {
   investor: Investor;
-  userRole: 'Admin' | 'Super Admin' | 'User' | 'Operations' | 'Driver' | 'Investor';
+  userRole: 'Admin' | 'SuperAdmin' | 'User' | 'Operations' | 'Driver' | 'Investor';
   onBack: () => void;
 }
 
 export function InvestorDetails({ investor, userRole, onBack }: InvestorDetailsProps) {
-  const isAdmin = userRole === 'Admin' || userRole === 'Super Admin';
-  const isSuperAdmin = userRole === 'Super Admin';
+  const isAdmin = userRole === 'Admin' || userRole === 'SuperAdmin';
+  const isSuperAdmin = userRole === 'SuperAdmin';
 
   if (!isAdmin) {
     return (

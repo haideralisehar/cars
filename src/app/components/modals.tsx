@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/app/components/ui/dialog';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
@@ -7,17 +7,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/app/components/ui/textarea';
 import { Card, CardContent } from '@/app/components/ui/card';
 import { Car, PaymentType, LeaseType } from '@/types';
-import { FileText, Check, ArrowLeft, ArrowRight, Download, Eye } from 'lucide-react';
+import { FileText, Check, ArrowLeft, ArrowRight, Download, Eye, UserPlus } from 'lucide-react';
+import { soldCar } from '@/app/api/CarInventory/sellCar';
 
 interface SellCarModalProps {
+  carId: string;
   isOpen: boolean;
   onClose: () => void;
   car: Car;
-  userRole: 'Admin' | 'Super Admin' | 'User' | 'Operations' | 'Driver' | 'Investor';
+  userRole: 'Admin' | 'SuperAdmin' | 'User' | 'Operations' | 'Driver' | 'Investor';
 }
 
-export function SellCarModal({ isOpen, onClose, car, userRole }: SellCarModalProps) {
+export function SellCarModal({ carId, isOpen, onClose, car, userRole }: SellCarModalProps) {
   const [step, setStep] = useState(1);
+   const [solding, setsolding] = useState(false);
+
+  
   
   // Step 1: Purchaser Details
   const [purchaserDetails, setPurchaserDetails] = useState({
@@ -30,7 +35,7 @@ export function SellCarModal({ isOpen, onClose, car, userRole }: SellCarModalPro
 
   // Step 2: Payment Terms
   const [paymentTerms, setPaymentTerms] = useState({
-    sellingPrice: car?.askingPrice?.toString() || '0',
+    sellingPrice: '',
     paymentType: 'Full' as PaymentType,
     advanceAmount: '',
     installmentCount: '6',
@@ -38,6 +43,30 @@ export function SellCarModal({ isOpen, onClose, car, userRole }: SellCarModalPro
     commission: '',
     commissionType: 'Fixed' as 'Fixed' | 'Percentage',
   });
+
+  useEffect(() => {
+  const totalPrice = parseFloat(paymentTerms.sellingPrice) || 0;
+  const advance = parseFloat(paymentTerms.advanceAmount) || 0;
+  const count = parseInt(paymentTerms.installmentCount) || 1;
+
+  if (paymentTerms.paymentType === 'Installment' && totalPrice > 0) {
+    const installment = ((totalPrice - advance) / count).toFixed(2);
+
+    setPaymentTerms(prev => ({
+      ...prev,
+      installmentAmount: installment
+    }));
+  }
+}, [
+  paymentTerms.sellingPrice,
+  paymentTerms.advanceAmount,
+  paymentTerms.installmentCount,
+  paymentTerms.paymentType
+]);
+
+
+
+
 
   // Step 3: Review
   const [agreementGenerated, setAgreementGenerated] = useState(false);
@@ -51,14 +80,95 @@ export function SellCarModal({ isOpen, onClose, car, userRole }: SellCarModalPro
     if (step > 1) setStep(step - 1);
   };
 
-  const handleConfirmSale = () => {
-    console.log('Sale confirmed', { purchaserDetails, paymentTerms });
+  const handleConfirmSale = async () => {
+
+    // Email validation helper function
+      const isValidEmail = (email) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+      };  
+
+    const isStepOneValid = purchaserDetails.name.trim() !== '' && purchaserDetails.cpr.trim() !== '' && purchaserDetails.phone.trim() !== '';
+    const isStepTwoValid = paymentTerms.sellingPrice.trim() !== '' && parseFloat(paymentTerms.sellingPrice) > 0 ;
+    const isInstallmentValid = paymentTerms.advanceAmount.trim() !== '' && parseFloat(paymentTerms.advanceAmount) >= 0 && parseFloat(paymentTerms.advanceAmount) <= parseFloat(paymentTerms.sellingPrice);
+
+    const isCommissionValid =
+  paymentTerms.commission.trim() !== '' &&
+  parseFloat(paymentTerms.commission) >= 0 ;
+
+    const isemail = isValidEmail(purchaserDetails.email);
+
+    if(!isemail && purchaserDetails.email.trim() !== '') {
+      alert('Please enter a valid email address.');
+      setStep(1);
+      return;
+    }
+
+    if (!isStepOneValid) {
+      alert('Please enter a valid purchaser details.');
+      setStep(1);
+      return;
+    }
+    if (!isStepTwoValid) {
+      alert('Please enter a valid selling price.');
+      setStep(2);
+      return;
+    }
+
+    if(paymentTerms.paymentType === 'Installment' && !isInstallmentValid) {
+      alert('Please enter a valid advance amount.');
+      setStep(2);
+      return;
+    }
+
+    if (paymentTerms.commissionType === 'Fixed' && !isCommissionValid) {
+      alert('Please enter a valid commission amount.');
+      setStep(2);
+      return;
+    }
+
+    if (paymentTerms.commissionType === 'Percentage' && (parseFloat(paymentTerms.commission) < 0 || parseFloat(paymentTerms.commission) > 100)) {
+      alert('Please enter a valid commission percentage (0-100).');
+      setStep(2);
+      return;
+    }
+
+    setsolding(true);
+
+    try {
+
+    const payload = {
+      carId: carId,
+      purchaserName: purchaserDetails.name,
+      cpr: purchaserDetails.cpr,
+      phone: purchaserDetails.phone,
+      email: purchaserDetails.email,
+      address: purchaserDetails.address,
+      sellingPrice: parseFloat(paymentTerms.sellingPrice),
+
+      paymentType: paymentTerms.paymentType,
+      advanceAmount: paymentTerms.paymentType === 'Installment' ?  parseFloat(paymentTerms.advanceAmount) : null,
+      numberOfInstallments: paymentTerms.paymentType === 'Installment' ?  parseInt(paymentTerms.installmentCount) : null,
+      commissionType: paymentTerms.commissionType,
+      commissionAmount: paymentTerms.commissionType === 'Percentage' ?  (parseFloat(paymentTerms.sellingPrice) * parseFloat(paymentTerms.commission) / 100).toFixed(2) : parseFloat(paymentTerms.commission).toFixed(2)
+    }
+
+      
+    console.log('Sale confirmed', payload);
+
+    const response = await soldCar(payload);
+
+      console.log("API Response:", response);
+      setsolding(false);
+
+      alert('Car sold successfully!');
+
     onClose();
     // Reset state
     setStep(1);
     setPurchaserDetails({ name: '', email: '', phone: '', cpr: '', address: '' });
     setPaymentTerms({ 
-      sellingPrice: car?.askingPrice?.toString() || '0', 
+      sellingPrice: '', 
       paymentType: 'Full', 
       advanceAmount: '', 
       installmentCount: '6', 
@@ -66,6 +176,14 @@ export function SellCarModal({ isOpen, onClose, car, userRole }: SellCarModalPro
       commission: '',
       commissionType: 'Fixed'
     });
+
+    } catch (error) { 
+      setsolding(false);
+      console.error('Error confirming sale:', error);
+      alert('An error occurred while confirming the sale. Please try again.');
+    } finally {
+      setsolding(false);
+    }
   };
 
   const handleGenerateAgreement = () => {
@@ -241,6 +359,7 @@ export function SellCarModal({ isOpen, onClose, car, userRole }: SellCarModalPro
                     <Input
                       id="selling-price"
                       type="number"
+                      placeholder='0'
                       value={paymentTerms.sellingPrice}
                       onChange={(e) => setPaymentTerms({ ...paymentTerms, sellingPrice: e.target.value })}
                       className="bg-input-background"
@@ -297,14 +416,14 @@ export function SellCarModal({ isOpen, onClose, car, userRole }: SellCarModalPro
                         </div>
                         <div>
                           <p className="text-xs text-muted-foreground">Per Installment</p>
-                          <p className="text-lg font-bold text-primary">BHD {calculateInstallmentAmount()}</p>
+                          <p className="text-lg font-bold text-primary">BHD {paymentTerms.installmentAmount}</p>
                         </div>
                       </div>
                     </div>
                   </>
                 )}
 
-                {(userRole === 'Admin' || userRole === 'Super Admin') && (
+                {(userRole === 'Admin' || userRole === 'SuperAdmin') && (
                   <>
                     <div className="border-t border-border pt-4">
                       <Label htmlFor="commission-type">Commission Type</Label>
@@ -408,10 +527,10 @@ export function SellCarModal({ isOpen, onClose, car, userRole }: SellCarModalPro
                             </div>
                           </>
                         )}
-                        {(userRole === 'Admin' || userRole === 'Super Admin') && paymentTerms.commission && (
+                        {(userRole === 'Admin' || userRole === 'SuperAdmin') && paymentTerms.commission && (
                           <div className="flex justify-between pt-2 border-t border-border">
                             <span className="text-sm text-muted-foreground">Commission:</span>
-                            <span className="text-sm font-medium text-primary">BHD {paymentTerms.commission}</span>
+                            <span className="text-sm font-medium text-primary">BHD {paymentTerms.commissionType === 'Percentage' ? (parseFloat(paymentTerms.sellingPrice) * parseFloat(paymentTerms.commission) / 100).toFixed(2) : parseFloat(paymentTerms.commission).toFixed(2)}</span>
                           </div>
                         )}
                       </div>
@@ -501,10 +620,21 @@ export function SellCarModal({ isOpen, onClose, car, userRole }: SellCarModalPro
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             ) : (
-              <Button onClick={handleConfirmSale}>
-                <Check className="h-4 w-4 mr-2" />
-                Confirm Sale
-              </Button>
+              // <Button onClick={handleConfirmSale}>
+              //   <Check className="h-4 w-4 mr-2" />
+              //   Confirm Sale
+              // </Button>
+
+              solding ? (
+                <Button disabled>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                </Button>
+              ) : (
+                <Button onClick={handleConfirmSale}>
+                  <Check className="h-4 w-4 mr-2" />
+                  Confirm Sale
+                </Button>
+              )
             )}
           </div>
         </div>
