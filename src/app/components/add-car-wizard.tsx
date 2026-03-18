@@ -9,10 +9,12 @@ import { Building2, User, Users, ArrowLeft, ArrowRight, Check, ChevronDown, Sear
 import { CarSource, PaymentType, LeaseType } from '@/types';
 import { addInventory } from "@/app/api/CarInventory/addcarinventory";
 import { ScrollArea } from './ui/scroll-area';
+import {uploadImage } from "@/app/api/UploadImage/uploadImage";
 import { 
  
   X
 } from 'lucide-react';
+import { set } from 'date-fns';
 
 interface AddCarWizardProps {
   onComplete: () => void;
@@ -24,6 +26,8 @@ const SearchableInvestorSelect = ({ value, onChange, investors, loading, onOpen 
   const [searchTerm, setSearchTerm] = useState('');
   const dropdownRef = useRef(null);
   const buttonRef = useRef(null);
+  
+
 
   const handleOpen = () => {
     setIsOpen(true);
@@ -155,7 +159,16 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
   const [investors, setInvestors] = useState([]);
   const [investorsLoading, setInvestorsLoading] = useState(false);
   const [carSource, setCarSource] = useState<CarSource | null>(null);
+  const [addingCar, setaddingCar] = useState(false);
+
+  const [imageUploading, setImageUploading] = useState(false);
+
+      const [carPhoto, setCarPhoto] = useState(null);
+
+      
+
   const [vehicleInfo, setVehicleInfo] = useState({
+    carimg:'',
     make: '',
     model: '',
     year: '',
@@ -182,12 +195,14 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
   });
 
   // Add this near your other state declarations
-  const [documents, setDocuments] = useState({
+    const [documents, setDocuments] = useState({
     registration: null,
     cpr: null,
     insurance: null,
     additional: null
   });
+
+
 
   const sourceOptions: { value: CarSource; label: string; icon: any; description: string }[] = [
     {
@@ -210,6 +225,62 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
     },
   ];
 
+  // const handleFileChange = async (e) => {
+  //     const file = e.target.files?.[0];
+  //     if (!file) return;
+
+  //     try {
+  //       setImageUploading(true);
+
+  //       const imageUrl = await uploadImage(file);
+
+  //       setCarPhoto(imageUrl);
+
+  //         setVehicleInfo((prev) => ({
+  //       ...prev,
+  //       carimg: imageUrl
+  //     }));
+
+  //       console.log("Uploaded Image:", carPhoto);
+  //       console.log("Vehicle Info with Image:", vehicleInfo);
+  //     } catch (error) {
+  //       console.error("Image upload failed:", error);
+  //     } finally {
+  //       setImageUploading(false);
+  //     }
+  //   };
+
+  const handleFileChange = async (e, type) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  try {
+    setImageUploading(true);
+
+    const fileUrl = await uploadImage(file);
+
+    if (type === "carimg") {
+      setCarPhoto(fileUrl);
+
+      setVehicleInfo((prev) => ({
+        ...prev,
+        carimg: fileUrl
+      }));
+
+      return;
+    }
+
+    setDocuments((prev) => ({
+      ...prev,
+      [type]: fileUrl
+    }));
+
+  } catch (error) {
+    console.error("Upload failed:", error);
+  } finally {
+    setImageUploading(false);
+  }
+};
   const handleNext = () => {
     if (step < 3) setStep(step + 1);
   };
@@ -271,9 +342,11 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
         }
       }
 
+      setaddingCar(true);
+
       const carData = {
         carSource: carSource,
-
+        CarImage: carPhoto,
         investorId: carSource === "Investor" ? financialDetails.investorId : null,
         customerId: carSource === "Customer" ? financialDetails.customerName : null,
 
@@ -298,6 +371,8 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
             ? financialDetails.paymentType
             
             : "null",
+        AmountUsed: carSource === "Investor" ? Number(financialDetails.investorAmount) : null,
+        CompanyCommission: carSource === "Investor" ? Number(financialDetails.commission) : null,
 
         enableLease: financialDetails.leaseEnabled,
 
@@ -317,10 +392,11 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
           ? financialDetails.MonthlyDueDate :
           null,
 
-        registrationCard: documents.registration,
-        cprDocument: documents.cpr,
-        insuranceDocument: documents.insurance,
-        additionalDocument: documents.additional
+        // ✅ Correct fields
+            registrationCard: documents.registration || null,
+      cprDocument: documents.cpr,
+      insuranceDocument: documents.insurance,
+      additionalDocument: documents.additional
       };
 
       console.log("Car Data:", carData);
@@ -328,12 +404,13 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
       const response = await addInventory(carData);
 
       console.log("API Response:", response);
-
+      setaddingCar(false);
       onComplete();
+
       
 
     } catch (error) {
-
+      setaddingCar(false);
       console.error("Error adding inventory:", error);
 
       alert(
@@ -393,8 +470,20 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
   //   return !hasActiveUser;
   // });
 
+  
+
   return (
+
+    
     <div className="min-h-screen bg-background p-6">
+      {imageUploading && (
+  <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+    <div className="flex flex-col items-center gap-3 bg-white p-6 rounded-lg shadow-lg">
+      <div className="w-8 h-8 border-4 border-gray-300 border-t-primary rounded-full animate-spin"></div>
+      <p className="text-sm font-medium text-black">Uploading image...</p>
+    </div>
+  </div>
+)}
       <div className="max-w-4xl mx-auto">
         {/* Progress Indicator */}
         <div className="mb-8">
@@ -476,7 +565,25 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
             <CardContent>
               {/* Form Section - Distinct Background */}
               <div className="p-6 rounded-lg border border-border" style={{ backgroundColor: 'var(--form-section)' }}>
+                 <div>
+                <Label>Car Photo</Label>
+                <Input
+                  type="file"
+                  accept=".jpg,.jpeg,.png"
+                  disabled={imageUploading}
+                  onChange={(e) => handleFileChange(e, "carimg")}
+                  className="bg-input-background mt-1 mb-3"
+                />
+
+                {carPhoto && (
+                  <p className="text-xs text-green-500 mt-1">
+                    ✓ Image uploaded successfully
+                  </p>
+                )}
+              </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+
                   <div>
                     <Label htmlFor="make">Make</Label>
                     <Input
@@ -587,14 +694,11 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
                     <Input
                       type="file"
                       accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) setDocuments({ ...documents, registration: file });
-                      }}
+                      onChange={(e) => handleFileChange(e, "registration")}
                       className="bg-input-background mt-1"
                     />
                     {documents.registration && (
-                      <p className="text-xs text-green-500 mt-1">✓ {documents.registration.name}</p>
+                      <p className="text-xs text-green-500 mt-1">✓ File Uploaded</p>
                     )}
                   </div>
 
@@ -603,14 +707,11 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
                     <Input
                       type="file"
                       accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) setDocuments({ ...documents, cpr: file });
-                      }}
+                       onChange={(e) => handleFileChange(e, "cpr")}
                       className="bg-input-background mt-1"
                     />
                     {documents.cpr && (
-                      <p className="text-xs text-green-500 mt-1">✓ {documents.cpr.name}</p>
+                      <p className="text-xs text-green-500 mt-1">✓ File Uploaded</p>
                     )}
                   </div>
 
@@ -619,14 +720,11 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
                     <Input
                       type="file"
                       accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) setDocuments({ ...documents, insurance: file });
-                      }}
+                      onChange={(e) => handleFileChange(e, "insurance")}
                       className="bg-input-background mt-1"
                     />
                     {documents.insurance && (
-                      <p className="text-xs text-green-500 mt-1">✓ {documents.insurance.name}</p>
+                      <p className="text-xs text-green-500 mt-1">✓ File Uploaded</p>
                     )}
                   </div>
 
@@ -636,14 +734,11 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
                       type="file"
                       multiple
                       accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={(e) => {
-                        const files = e.target.files ? Array.from(e.target.files) : [];
-                        setDocuments({ ...documents, additional: files });
-                      }}
+                      onChange={(e) => handleFileChange(e, "additional")}
                       className="bg-input-background mt-1"
                     />
-                    {documents.additional?.length > 0 && (
-                      <p className="text-xs text-green-500 mt-1">✓ {documents.additional.length} file(s) selected</p>
+                    {documents.additional && (
+                      <p className="text-xs text-green-500 mt-1">✓ File Uploaded</p>
                     )}
                   </div>
                 </div>
@@ -916,9 +1011,18 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
                 <Button variant="outline" onClick={handleBack}>
                   <ArrowLeft className="mr-2 h-4 w-4" /> Back
                 </Button>
+                {
+                addingCar ? (
+                <Button disabled>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                </Button>
+              ) : (
                 <Button onClick={handleComplete}>
                   <Check className="mr-2 h-4 w-4" /> Save Car
                 </Button>
+              )}
+            
+                
               </div>
             </CardContent>
           </Card>

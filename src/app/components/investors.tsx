@@ -1,4 +1,4 @@
-  import { useState } from 'react';
+  import { useState, useEffect } from 'react';
   import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
   import { Button } from '@/app/components/ui/button';
   import { Badge } from '@/app/components/ui/badge';
@@ -6,6 +6,7 @@
   import { AddEditInvestorModal } from '@/app/components/add-edit-investor-modal';
   import { InvestorDetails } from '@/app/components/investor-details';
   import { Investor } from '@/types';
+  import { getInvestors } from "@/app/api/Investors/getInvestors";
   import { 
     Plus, 
     TrendingUp, 
@@ -23,75 +24,40 @@
 
   export function Investors({ userRole }: InvestorsProps) {
     const [addModalOpen, setAddModalOpen] = useState(false);
-    const [selectedInvestor, setSelectedInvestor] = useState<Investor | null>(null);
+    const [selectedInvestor, setSelectedInvestor] = useState(null);
     const [viewingDetails, setViewingDetails] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [investors, setInvestors] = useState([]);
 
     const isAdmin = userRole === 'Admin' || userRole === 'SuperAdmin';
     const isSuperAdmin = userRole === 'SuperAdmin';
     const isInvestor = userRole === 'Investor';
 
-    // Mock data
-    const mockInvestors: Investor[] = [
-      {
-        id: 'inv-1',
-        name: 'Ahmed Al-Hassan',
-        contactNumber: '+973 3333 4444',
-        cprNumber: '920101234',
-        status: 'Active',
-        investments: [
-          { id: 'ie-1', amount: 50000, date: '2026-01-01' },
-          { id: 'ie-2', amount: 25000, date: '2026-01-15' },
-        ],
-        totalInvested: 75000,
-        currentBalance: 82500,
-        totalProfit: 7500,
-        profitLastWeek: 1200,
-        profitLastMonth: 4800,
-        roi: 10.0,
-        activeCars: ['car-1', 'car-2'],
-        createdAt: '2026-01-01',
-      },
-      {
-        id: 'inv-2',
-        name: 'Sara Mohammed',
-        contactNumber: '+973 3344 5566',
-        cprNumber: '930202345',
-        status: 'Active',
-        investments: [
-          { id: 'ie-3', amount: 100000, date: '2025-12-15' },
-        ],
-        totalInvested: 100000,
-        currentBalance: 115000,
-        totalProfit: 15000,
-        profitLastWeek: 800,
-        profitLastMonth: 3500,
-        roi: 15.0,
-        activeCars: ['car-3', 'car-4', 'car-5'],
-        createdAt: '2025-12-15',
-      },
-      {
-        id: 'inv-3',
-        name: 'Khalid Ibrahim',
-        contactNumber: '+973 3355 6677',
-        cprNumber: '940303456',
-        status: 'Active',
-        investments: [
-          { id: 'ie-4', amount: 30000, date: '2026-01-20' },
-        ],
-        totalInvested: 30000,
-        currentBalance: 31200,
-        totalProfit: 1200,
-        profitLastWeek: 500,
-        profitLastMonth: 1200,
-        roi: 4.0,
-        activeCars: ['car-6'],
-        createdAt: '2026-01-20',
-      },
-    ];
+    // Fetch Investors
+      useEffect(() => {
+        fetchInvestors();
+      }, []);
+    
+      const fetchInvestors = async () => {
+        try {
+          setSelectedInvestor(null);
+          setLoading(true);
+          const data = await getInvestors();
+          setInvestors(data);
+          console.log("Investor Data:", data);
+        } catch (error) {
+          console.error("Failed to fetch investors:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
 
-    const filteredInvestors = mockInvestors.filter((investor) =>
-      investor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    // Mock data
+    
+
+    const filteredInvestors = investors.filter((investor) =>
+      investor.investorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       investor.contactNumber.includes(searchQuery) ||
       investor.cprNumber.includes(searchQuery)
     );
@@ -106,6 +72,19 @@
       setSelectedInvestor(null);
     };
 
+    const handleCloseModal = () => {
+      setAddModalOpen(false);
+      setSelectedInvestor(null);
+    };
+
+    if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
     if (viewingDetails && selectedInvestor) {
       return (
         <InvestorDetails 
@@ -116,9 +95,10 @@
       );
     }
 
+
     // Investor Dashboard View
     if (isInvestor) {
-      const investorData = mockInvestors[0]; // Self only
+      const investorData = investors[0]; // Self only
       return (
         <div className="min-h-screen bg-background p-6">
           <div className="max-w-7xl mx-auto">
@@ -245,7 +225,7 @@
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Total Investors</p>
-                    <p className="text-2xl font-bold">{mockInvestors.length}</p>
+                    <p className="text-2xl font-bold">{investors.length}</p>
                   </div>
                 </div>
               </CardContent>
@@ -260,7 +240,7 @@
                   <div>
                     <p className="text-sm text-muted-foreground">Total Invested</p>
                     <p className="text-2xl font-bold">
-                      BHD {mockInvestors.reduce((sum, inv) => sum + inv.totalInvested, 0).toLocaleString()}
+                      BHD {investors.reduce((sum, inv) => sum + inv.totalInvestment, 0)}
                     </p>
                   </div>
                 </div>
@@ -276,7 +256,7 @@
                   <div>
                     <p className="text-sm text-muted-foreground">Total Profit</p>
                     <p className="text-2xl font-bold text-primary">
-                      BHD {mockInvestors.reduce((sum, inv) => sum + inv.totalProfit, 0).toLocaleString()}
+                      {/* BHD {mockInvestors.reduce((sum, inv) => sum + inv.totalProfit, 0)} */}
                     </p>
                   </div>
                 </div>
@@ -292,13 +272,14 @@
                   <div>
                     <p className="text-sm text-muted-foreground">Current Balance</p>
                     <p className="text-2xl font-bold">
-                      BHD {mockInvestors.reduce((sum, inv) => sum + inv.currentBalance, 0).toLocaleString()}
+                      {/* BHD {mockInvestors.reduce((sum, inv) => sum + inv.currentBalance, 0)} */}
                     </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
+          
 
           {/* Investor Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -312,12 +293,12 @@
                   {/* Header */}
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h3 className="font-semibold text-lg mb-1">{investor.name}</h3>
+                      <h3 className="font-semibold text-lg mb-1">{investor.investorName}</h3>
                       <p className="text-sm text-muted-foreground">{investor.contactNumber}</p>
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                      <Badge variant={investor.status === 'Active' ? 'default' : 'secondary'}>
-                        {investor.status}
+                      <Badge variant={investor.isActive ? 'default' : 'secondary'}>
+                        {investor.isActive? "Active" : "Inactive"}
                       </Badge>
                       {isSuperAdmin && (
                         <Button 
@@ -327,6 +308,7 @@
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedInvestor(investor);
+                            console.log("Selected Investor for Edit:", selectedInvestor);
                             setAddModalOpen(true);
                           }}
                         >
@@ -340,16 +322,17 @@
                   <div className="space-y-3 mb-4">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Total Invested</span>
-                      <span className="font-medium">BHD {investor.totalInvested.toLocaleString()}</span>
+                      <span className="font-medium">BHD {investor.totalInvestment}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Active Assets</span>
-                      <span className="font-medium">{investor.activeCars.length}</span>
+                      <span className="font-medium">{investor.investmentEntries.length}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Total Net Profit</span>
                       <span className="font-bold text-primary">
-                        BHD {investor.totalProfit.toLocaleString()}
+                        {/* BHD {investor.totalProfit.toLocaleString()} */}
+                        BHD 3000
                       </span>
                     </div>
                   </div>
@@ -366,7 +349,8 @@
                         )}
                       </div>
                       <span className="text-sm font-medium text-primary">
-                        BHD {investor.profitLastWeek.toLocaleString()}
+                        {/* BHD {investor.profitLastWeek.toLocaleString()} */}
+                        BHD 1200
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -379,7 +363,8 @@
                         )}
                       </div>
                       <span className="text-sm font-medium text-primary">
-                        BHD {investor.profitLastMonth.toLocaleString()}
+                        {/* BHD {investor.profitLastMonth.toLocaleString()} */}
+                        BHD 4800
                       </span>
                     </div>
                   </div>
@@ -388,7 +373,7 @@
                   <div className="mt-3 pt-3 border-t border-border">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">ROI</span>
-                      <span className="text-lg font-bold text-primary">{investor.roi}%</span>
+                      <span className="text-lg font-bold text-primary">{investor.roi? investor.roi.toFixed(2) + '%' : 'N/A'}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -396,7 +381,7 @@
             ))}
           </div>
 
-          {filteredInvestors.length === 0 && (
+          {/* {filteredInvestors.length === 0 && (
             <Card className="bg-card border-border">
               <CardContent className="p-12 text-center">
                 <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
@@ -407,14 +392,15 @@
                 </Button>
               </CardContent>
             </Card>
-          )}
+          )} */}
         </div>
 
         {/* Add/Edit Investor Modal */}
         <AddEditInvestorModal
           isOpen={addModalOpen}
-          onClose={() => setAddModalOpen(false)}
-          investor={null}
+          onClose={() => handleCloseModal()}
+          investor={selectedInvestor}
+          onEditSuccess={fetchInvestors} // Refresh list after edit
         />
       </div>
     );

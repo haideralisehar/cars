@@ -106,13 +106,19 @@ export function CarsInventory({
                   onClick={() => isAdmin && onCarClick(car)}
                   className="relative h-48 bg-secondary overflow-hidden"
                 >
-                  <img
-                    src={car.images?.[0] || 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&h=500&fit=crop'}
-                    alt={`${car.make} ${car.model}`}
-                    className={`w-full h-full object-cover transition-transform ${
-                      isAdmin ? 'group-hover:scale-105' : ''
-                    }`}
-                  />
+                <img
+  src={car.carImagePath || '/placeholder-car.png'}
+  alt={`${car.make} ${car.model}`}
+  className={`w-full h-full object-cover transition-transform ${
+    isAdmin ? 'group-hover:scale-105' : ''
+  }`}
+  onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    const target = e.target as HTMLImageElement;
+    target.src = "https://www.freeiconspng.com/thumbs/no-image-icon/no-image-icon-6.png";
+    target.onerror = null; // Prevents infinite loop if fallback also fails
+  }}
+  loading="lazy" // Add lazy loading for better performance
+/>
 
                   <div className="absolute top-3 right-3 flex gap-2">
                     <Badge className={getStatusColor(car.status)}>

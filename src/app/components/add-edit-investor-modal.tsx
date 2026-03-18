@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -6,15 +6,25 @@ import { Label } from './ui/label';
 import { Card, CardContent } from './ui/card';
 import { Plus, X, Check } from 'lucide-react';
 import { createInvestor } from "@/app/api/Investors/addInvestor";
+import {uploadImage } from "@/app/api/UploadImage/uploadImage";
+import { editInvestor } from "@/app/api/Investors/editInvestor";
 
-export function AddEditInvestorModal({ isOpen, onClose, investor }) {
+export function AddEditInvestorModal({ isOpen, onClose, investor, onEditSuccess }) {
+
+useEffect(() => {
+  console.log("Investor prop changed:", investor);
+    
+    });
 
   const [addingInvestor, setAddingInvestor] = useState(false);
+   const [imageUploading, setImageUploading] = useState(false);
+   const [carPhoto, setCarPhoto] = useState(null);
   const [investorData, setInvestorData] = useState({
-    name: investor?.name || '',
+    name: investor?.investorName || '',
     contactNumber: investor?.contactNumber || '',
     cprNumber: investor?.cprNumber || '',
     notes: '',
+    cprDocumentPath: investor?.cprDocumentPath || ''
   });
 
   const [investments, setInvestments] = useState(
@@ -26,6 +36,46 @@ export function AddEditInvestorModal({ isOpen, onClose, investor }) {
     })) || 
     [{ amount: '', date: '', method: 'Bank Transfer', remarks: '' }]
   );
+
+   // Initialize form when investor prop changes or modal opens
+  useEffect(() => {
+    console.log("Investor prop in modal:", investor);
+    
+    if (investor) {
+      // Editing existing investor
+      setInvestorData({
+        name: investor.investorName || '',
+        contactNumber: investor.contactNumber || '',
+        cprNumber: investor.cprNumber || '',
+        notes: investor.notes || '',
+        cprDocumentPath: investor.cprDocumentPath || ''
+      });
+
+      // Map investment entries
+      if (investor.investmentEntries && investor.investmentEntries.length > 0) {
+        setInvestments(
+          investor.investmentEntries.map(entry => ({
+            amount: entry.amount?.toString() || '',
+            date: entry.investmentDate ? entry.investmentDate.split('T')[0] : '',
+            method: entry.paymentMethod || 'Bank Transfer',
+            remarks: entry.remarks || ''
+          }))
+        );
+      } else {
+        setInvestments([{ amount: '', date: '', method: 'Bank Transfer', remarks: '' }]);
+      }
+    } else {
+      // Reset form for new investor
+      setInvestorData({
+        name: '',
+        contactNumber: '',
+        cprNumber: '',
+        notes: '',
+        cprDocumentPath: ''
+      });
+      setInvestments([{ amount: '', date: '', method: 'Bank Transfer', remarks: '' }]);
+    }
+  }, [investor, isOpen]); // Re-run when investor changes or modal opens
 
   const handleAddInvestment = () => {
     setInvestments([...investments, { amount: '', date: '', method: 'Bank Transfer', remarks: '' }]);
@@ -70,6 +120,189 @@ export function AddEditInvestorModal({ isOpen, onClose, investor }) {
 //   }
 // };
 
+ const handleFileChange = async (e, type) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  try {
+    setImageUploading(true);
+
+    const fileUrl = await uploadImage(file);
+
+    if (type === "cprDocumentPath") {
+      setCarPhoto(fileUrl);
+
+      setInvestorData((prev) => ({
+        ...prev,
+        cprDocumentPath: fileUrl
+      }));
+      console.log("Uploaded file URL:", investorData);
+
+      return investorData;
+    }
+
+    
+
+  } catch (error) {
+    console.error("Upload failed:", error);
+  } finally {
+    setImageUploading(false);
+  }
+};
+
+// const handleSave = async () => {
+//   // Basic fields validation
+//   if (
+//     !investorData.name.trim() ||
+//     !investorData.contactNumber.trim() ||
+//     !investorData.cprNumber.trim()
+//   ) {
+//     alert("Please fill all required investor fields");
+//     return;
+//   }
+
+//   // Investment validation
+//   const invalidInvestment = investments.some(
+//     (inv) => !inv.amount || !inv.date || !inv.method
+//   );
+
+//   if (invalidInvestment) {
+//     alert("Please fill all required investment fields");
+//     return;
+//   }
+
+//   try {
+//     setAddingInvestor(true);
+//     const payload = {
+//       investorName: investorData.name,
+//       email: "",
+//       contactNumber: investorData.contactNumber,
+//       cprNumber: investorData.cprNumber,
+//       notes: investorData.notes,
+//       cprDocumentPath: investorData.cprDocumentPath,
+
+//       investmentEntries: investments.map((inv) => ({
+//         id: investor? investor?.id : undefined, // Include ID for existing investments when editing
+//         amount: parseFloat(inv.amount),
+//         investmentDate: new Date(inv.date).toISOString(),
+//         paymentMethod: inv.method,
+//         remarks: inv.remarks,
+//       })),
+//     };
+
+    
+
+//      const response = await createInvestor(payload);
+//      setAddingInvestor(false);
+//     console.log("Payload sent to API:", payload);
+//     console.log("API Response:", response);
+
+//     // ✅ Clear investor fields
+//     setInvestorData({
+//       name: "",
+//       contactNumber: "",
+//       cprNumber: "",
+//       notes: "",
+//       cprDocumentPath: ""
+//     });
+
+//     // ✅ Reset investments
+//     setInvestments([
+//       { amount: "", date: "", method: "", remarks: "" },
+//     ]);
+
+//     alert("Investor added successfully");
+
+//     onClose();
+//   } catch (error) {
+//     alert("Failed to add investor");
+//   }
+// };
+  
+// const handleSave = async () => {
+//     // Basic fields validation
+//     if (
+//       !investorData.name.trim() ||
+//       !investorData.contactNumber.trim() ||
+//       !investorData.cprNumber.trim() ||
+//       !investorData.cprDocumentPath.trim()
+//     ) {
+//       alert("Please fill all required investor fields");
+//       return;
+//     }
+
+//     // Investment validation
+//     const invalidInvestment = investments.some(
+//       (inv) => !inv.amount || !inv.date || !inv.method
+//     );
+
+//     if (invalidInvestment) {
+//       alert("Please fill all required investment fields");
+//       return;
+//     }
+
+//     try {
+//       setAddingInvestor(true);
+      
+//       const payload = {
+//         investorName: investorData.name,
+//         email: "",
+//         contactNumber: investorData.contactNumber,
+//         cprNumber: investorData.cprNumber,
+//         notes: investorData.notes,
+//         cprDocumentPath: investorData.cprDocumentPath,
+//         investmentEntries: investments.map((inv) => ({
+//           id: investor ? investor.id : undefined, // Include ID for existing investments when editing
+//           amount: parseFloat(inv.amount),
+//           investmentDate: new Date(inv.date).toISOString(),
+//           paymentMethod: inv.method,
+//           remarks: inv.remarks,
+//         })),
+//       };
+
+//       let response;
+      
+//       if (investor) {
+//         // Edit existing investor
+//         console.log("Editing investor with ID:", investor.id);
+//         console.log("Edit payload:", payload);
+//         response = await editInvestor(investor.id, payload);
+//         console.log("Edit Response:", response);
+//         alert("Investor updated successfully");
+//       } else {
+//         // Create new investor
+//         console.log("Create payload:", payload);
+//         response = await createInvestor(payload);
+//         console.log("Create Response:", response);
+//         alert("Investor added successfully");
+//       }
+
+//       // Clear form
+//       setInvestorData({
+//         name: "",
+//         contactNumber: "",
+//         cprNumber: "",
+//         notes: "",
+//         cprDocumentPath: ""
+//       });
+//       setInvestments([
+//         { amount: "", date: "", method: "Bank Transfer", remarks: "" },
+//       ]);
+
+     
+
+//       onClose();
+//       onEditSuccess(); // Refresh list after edit or add
+
+//     } catch (error) {
+//       console.error("Failed to save investor:", error);
+//       alert(investor ? "Failed to update investor" : "Failed to add investor");
+//     } finally {
+//       setAddingInvestor(false);
+//     }
+//   };
+
+
 const handleSave = async () => {
   // Basic fields validation
   if (
@@ -78,6 +311,12 @@ const handleSave = async () => {
     !investorData.cprNumber.trim()
   ) {
     alert("Please fill all required investor fields");
+    return;
+  }
+
+  // Only require CPR document for new investors
+  if (!investor && !investorData.cprDocumentPath.trim()) {
+    alert("Please upload CPR document");
     return;
   }
 
@@ -93,50 +332,97 @@ const handleSave = async () => {
 
   try {
     setAddingInvestor(true);
+    
     const payload = {
       investorName: investorData.name,
       email: "",
       contactNumber: investorData.contactNumber,
       cprNumber: investorData.cprNumber,
       notes: investorData.notes,
-
-      investmentEntries: investments.map((inv) => ({
-        amount: parseFloat(inv.amount),
-        investmentDate: new Date(inv.date).toISOString(),
-        paymentMethod: inv.method,
-        remarks: inv.remarks,
-      })),
+      cprDocumentPath: investorData.cprDocumentPath,
+      investmentEntries: investments.map((inv, index) => {
+        // Get the existing investment entry ID if available
+        let entryId = undefined;
+        if (investor?.investmentEntries?.[index]?.id) {
+          entryId = investor.investmentEntries[index].id;
+        }
+        
+        return {
+          id: entryId, // Use existing ID for updates, undefined for new entries
+          amount: parseFloat(inv.amount),
+          investmentDate: new Date(inv.date).toISOString(),
+          paymentMethod: inv.method,
+          remarks: inv.remarks,
+        };
+      }),
     };
 
-     const response = await createInvestor(payload);
-     setAddingInvestor(false);
+    console.log("Sending payload:", JSON.stringify(payload, null, 2));
+    
+    let response;
+    
+    if (investor) {
+      // Edit existing investor
+      console.log("Editing investor with ID:", investor.id);
+      response = await editInvestor(investor.id, payload);
+      console.log("Edit Response:", response);
+      
+      if (response && !response.error) {
+        alert("Investor updated successfully");
+      } else {
+        throw new Error(response?.message || "Update failed");
+      }
+    } else {
+      // Create new investor
+      console.log("Create payload:", payload);
+      response = await createInvestor(payload);
+      console.log("Create Response:", response);
+      
+      if (response && !response.error) {
+        alert("Investor added successfully");
+      } else {
+        throw new Error(response?.message || "Creation failed");
+      }
+    }
 
-    console.log("API Response:", response);
-
-    // ✅ Clear investor fields
+    // Clear form
     setInvestorData({
       name: "",
       contactNumber: "",
       cprNumber: "",
       notes: "",
+      cprDocumentPath: ""
     });
-
-    // ✅ Reset investments
     setInvestments([
-      { amount: "", date: "", method: "", remarks: "" },
+      { amount: "", date: "", method: "Bank Transfer", remarks: "" },
     ]);
 
-    alert("Investor added successfully");
-
     onClose();
+    if (onEditSuccess) {
+      onEditSuccess(); // Refresh list after edit or add
+    }
+
   } catch (error) {
-    alert("Failed to add investor");
+    console.error("Failed to save investor:", error);
+    alert(error.message || (investor ? "Failed to update investor" : "Failed to add investor"));
+  } finally {
+    setAddingInvestor(false);
   }
 };
-  const totalInvestment = investments.reduce((sum, inv) => sum + (parseFloat(inv.amount) || 0), 0);
+const totalInvestment = investments.reduce((sum, inv) => sum + (parseFloat(inv.amount) || 0), 0);
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen}  onOpenChange={onClose}>
+      {imageUploading && (
+  <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+    <div className="flex flex-col items-center gap-3 bg-white p-6 rounded-lg shadow-lg">
+      <div className="w-8 h-8 border-4 border-gray-300 border-t-primary rounded-full animate-spin"></div>
+      <p className="text-sm font-medium text-black">Uploading</p>
+    </div>
+  </div>
+)}
+
+
       <DialogContent className="bg-card max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{investor ? 'Edit Investor' : 'Add New Investor'}</DialogTitle>
@@ -200,17 +486,24 @@ const handleSave = async () => {
               </div>
 
               <div>
-                <Label htmlFor="cpr-upload">Upload CPR Document</Label>
+                <Label htmlFor="cpr-upload">Upload CPR Document (ID CARD)*</Label>
                 <div className="mt-2">
                   <Input
                     id="cpr-upload"
                     type="file"
+                    disabled={imageUploading}
+                     onChange={(e) => handleFileChange(e, "cprDocumentPath")}
                     accept="image/*,.pdf"
                     className="bg-input-background"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Upload a copy of the investor's CPR (ID card)
+                  <p className={`text-xs mt-1 ${
+                    investorData.cprDocumentPath 
+                      ? 'text-green-600 dark:text-green-400' 
+                      : 'text-red-600 dark:text-red-400'
+                  }`}>
+                    {investorData.cprDocumentPath ? "✓ File Uploaded " : "✗ No file uploaded "}
                   </p>
+
                 </div>
               </div>
             </CardContent>
@@ -221,12 +514,14 @@ const handleSave = async () => {
             <CardContent className="p-6 space-y-4">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-medium text-lg">Investment Entries</h3>
+                {investor? null :
                 <Button size="sm" variant="outline" onClick={handleAddInvestment}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Entry
                 </Button>
+}
               </div>
-
+                
               <div className="space-y-3">
                 {investments.map((investment, index) => (
                   <div
