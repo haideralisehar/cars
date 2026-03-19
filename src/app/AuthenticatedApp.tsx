@@ -483,6 +483,7 @@ export default function AuthenticatedApp({ user, onLogout }) {
         )}
         {leaseCarModal.car && (
           <LeaseCarModal
+           carId={leaseCarModal.car.id}
             isOpen={leaseCarModal.isOpen}
             onClose={() => setLeaseCarModal({ isOpen: false, car: null })}
             car={leaseCarModal.car}

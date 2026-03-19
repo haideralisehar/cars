@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/app/components/ui/card';
 import { Car, PaymentType, LeaseType } from '@/types';
 import { FileText, Check, ArrowLeft, ArrowRight, Download, Eye, UserPlus } from 'lucide-react';
 import { soldCar } from '@/app/api/CarInventory/sellCar';
+import { leaseCar } from "@/app/api/CarInventory/leaseCar";
 
 interface SellCarModalProps {
   carId: string;
@@ -644,14 +645,16 @@ export function SellCarModal({ carId, isOpen, onClose, car, userRole }: SellCarM
 }
 
 interface LeaseCarModalProps {
+  carId: string;
   isOpen: boolean;
   onClose: () => void;
   car: Car;
-  userRole: 'Admin' | 'Super Admin' | 'User' | 'Operations' | 'Driver' | 'Investor';
+  userRole: 'Admin' | 'SuperAdmin' | 'User' | 'Operations' | 'Driver' | 'Investor';
 }
 
-export function LeaseCarModal({ isOpen, onClose, car, userRole }: LeaseCarModalProps) {
+export function LeaseCarModal({carId, isOpen, onClose, car, userRole }: LeaseCarModalProps) {
   const [step, setStep] = useState(1);
+  const [solding, setsolding] = useState(false);
   
   // Step 1: Lessee Details
   const [lesseeDetails, setLesseeDetails] = useState({
@@ -686,22 +689,132 @@ export function LeaseCarModal({ isOpen, onClose, car, userRole }: LeaseCarModalP
     if (step > 1) setStep(step - 1);
   };
 
-  const handleConfirmLease = () => {
-    console.log('Lease confirmed', { lesseeDetails, leaseTerms });
-    onClose();
-    // Reset state
-    setStep(1);
-    setLesseeDetails({ name: '', email: '', phone: '', cpr: '', licenseNumber: '', address: '' });
-    setLeaseTerms({ 
-      leaseType: 'Daily', 
-      leaseRate: car?.leaseAmount?.toString() || '', 
-      duration: '', 
-      advanceAmount: '',
-      securityDeposit: '',
-      commission: '',
-      commissionType: 'Fixed'
-    });
-  };
+  const handleConfirmLease = async () => {
+
+    //Email validation helper function
+    const isValidEmail = (email) => {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    };
+
+    const isStepOneValid = lesseeDetails.name.trim() !== '' && lesseeDetails.cpr.trim() !== '' && lesseeDetails.phone.trim() !== '' && lesseeDetails.licenseNumber.trim() !== '' && lesseeDetails.address.trim() !== '';
+    const isStepTwoValid = leaseTerms.leaseType.trim() !== '' && leaseTerms.leaseRate.trim() !== '' && leaseTerms.duration.trim() !== '' && leaseTerms.advanceAmount.trim() !== '' && leaseTerms.securityDeposit.trim() !== '';
+
+
+    const isCommissionValid =
+      leaseTerms.commission.trim() !== '' &&
+      parseFloat(leaseTerms.commission) >= 0 || null;
+
+    const isemail = isValidEmail(lesseeDetails.email);
+
+    if (!isemail && lesseeDetails.email.trim() !== '') {
+      alert('Please enter a valid email address.');
+      setStep(1);
+      return;
+    }
+
+    if (!isStepOneValid) {
+      alert('Please enter all the lease information details.');
+      setStep(1);
+      return;
+    }
+
+    if (!isStepTwoValid) {
+      alert('Please enter all the lease terms details.');
+      setStep(2);
+      return;
+
+    }
+
+    if (!isCommissionValid) {
+      alert('Please enter a valid commission amount.');
+      setStep(2);
+      return;
+    }
+
+
+
+    if (leaseTerms.commissionType === 'Percentage' && (parseFloat(leaseTerms.commission) < 0 || parseFloat(leaseTerms.commission) > 100)) {
+      alert('Please enter a valid commission percentage (0-100).');
+      setStep(2);
+      return;
+    }
+
+    setsolding(true);
+
+    try {
+
+      const payload = {
+        // Lease Information
+        carId: carId,
+        fullName: lesseeDetails.name,
+        cprNumber: lesseeDetails.cpr,
+        phoneNumber: lesseeDetails.phone,
+        email: lesseeDetails.email,
+        address: lesseeDetails.address,
+        drivingLicenseNumber: lesseeDetails.licenseNumber,
+
+        // Leaser Terms
+        leaseType: leaseTerms.leaseType,
+        leaseRate: parseFloat(leaseTerms.leaseRate),
+        duration: parseInt(leaseTerms.duration),
+        advanceAmount: parseFloat(leaseTerms.advanceAmount),
+        securityDeposit: parseFloat(leaseTerms.securityDeposit),
+
+        commissionType: leaseTerms.commissionType,
+        commissionAmount: leaseTerms.commissionType === 'Percentage' ? (parseFloat(leaseTerms.leaseRate) * parseInt(leaseTerms.duration) * parseFloat(leaseTerms.commission) / 100).toFixed(2) : parseFloat(leaseTerms.commission).toFixed(2)
+
+      }
+
+
+      console.log('Sale confirmed', payload);
+
+      const response = await leaseCar(payload);
+
+      console.log("API Response:", response);
+      setsolding(false);
+
+      alert('Car leased successfully!');
+
+      onClose();
+      setStep(1);
+      setLesseeDetails({ name: '', email: '', phone: '', cpr: '', licenseNumber: '', address: '' });
+      setLeaseTerms({ 
+        leaseType: 'Daily', 
+        leaseRate: car?.leaseAmount?.toString() || '', 
+        duration: '', 
+        advanceAmount: '',
+        securityDeposit: '',
+        commission: '',
+        commissionType: 'Fixed'
+      });
+      
+
+  } catch (error) {
+    setsolding(false);
+    console.error('Error confirming sale:', error);
+    alert('An error occurred while confirming the lease. Please try again.');
+  } finally {
+    setsolding(false);
+  }
+};
+
+  // const handleConfirmLease = () => {
+  //   console.log('Lease confirmed', { lesseeDetails, leaseTerms });
+  //   onClose();
+  //   // Reset state
+  //   setStep(1);
+  //   setLesseeDetails({ name: '', email: '', phone: '', cpr: '', licenseNumber: '', address: '' });
+  //   setLeaseTerms({ 
+  //     leaseType: 'Daily', 
+  //     leaseRate: car?.leaseAmount?.toString() || '', 
+  //     duration: '', 
+  //     advanceAmount: '',
+  //     securityDeposit: '',
+  //     commission: '',
+  //     commissionType: 'Fixed'
+  //   });
+  // };
 
   const handleGenerateAgreement = () => {
     console.log('Generating lease agreement...');
@@ -945,7 +1058,7 @@ export function LeaseCarModal({ isOpen, onClose, car, userRole }: LeaseCarModalP
                   </div>
                 </div>
 
-                {(userRole === 'Admin' || userRole === 'Super Admin') && (
+                {(userRole === 'Admin' || userRole === 'SuperAdmin') && (
                   <>
                     <div className="border-t border-border pt-4">
                       <Label htmlFor="lease-commission-type">Commission Type</Label>
@@ -1094,10 +1207,16 @@ export function LeaseCarModal({ isOpen, onClose, car, userRole }: LeaseCarModalP
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             ) : (
-              <Button onClick={handleConfirmLease}>
-                <Check className="h-4 w-4 mr-2" />
-                Confirm Lease
-              </Button>
+              solding ? (
+                <Button disabled>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                </Button>
+              ) : (
+                <Button onClick={handleConfirmLease}>
+                  <Check className="h-4 w-4 mr-2" />
+                  Confirm Lease
+                </Button>
+              )
             )}
           </div>
         </div>
