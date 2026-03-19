@@ -753,7 +753,7 @@ export function LeaseCarModal({carId, isOpen, onClose, car, userRole }: LeaseCar
         email: lesseeDetails.email,
         address: lesseeDetails.address,
         drivingLicenseNumber: lesseeDetails.licenseNumber,
-
+//hjkgg
         // Leaser Terms
         leaseType: leaseTerms.leaseType,
         leaseRate: parseFloat(leaseTerms.leaseRate),
