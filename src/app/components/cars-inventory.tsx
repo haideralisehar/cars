@@ -1105,7 +1105,7 @@ export function CarsInventory({
             </div>
 
             {/* Pagination - Only show if total pages > 1 */}
-            {totalPages > 1 && (
+            {totalPages && (
               <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
                 {/* Items per page selector */}
                 <div className="flex items-center gap-2">
