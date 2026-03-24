@@ -7,6 +7,7 @@ import { Input } from '@/app/components/ui/input';
 import { mockMoneyRecords } from '@/types/money-record';
 import { mockInstallments } from '@/data/mockData';
 import { ArrowLeft, Edit, FileText, Download, Wallet, Calendar, Upload, X } from 'lucide-react';
+import { leaseCar } from '../api/CarInventory/leaseCar';
 
 export function CarDetails({ 
   car, 
@@ -91,6 +92,10 @@ export function CarDetails({
     }
   };
 
+  const handleDownload = (url) => {
+  window.open(url, "_blank");
+};
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
@@ -115,7 +120,7 @@ export function CarDetails({
               {/* Image */}
               <div className="relative h-80 bg-secondary rounded-lg overflow-hidden">
                 <img
-                  src={car.images?.[0] || 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&h=500&fit=crop'}
+                  src={car?.carImagePath}
                   alt={`${car.make} ${car.model}`}
                   className="w-full h-full object-cover"
                 />
@@ -261,23 +266,24 @@ export function CarDetails({
                     </div> */}
                   </div>
                 </div>
+              
 
-                {car.leaseEnabled && (
+                {car?.financialDetails?.enableLease && (
                   <div className="mt-6 pt-6 border-t border-border">
                     <h4 className="font-medium mb-3">Lease Details</h4>
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Lease Type:</span>
-                        <span className="font-medium">{car.leaseType}</span>
+                        <span className="font-medium">{car?.financialDetails?.leaseType}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Lease Amount:</span>
-                        <span className="font-medium">${car.leaseAmount?.toLocaleString()}</span>
+                        <span className="font-medium">${car?.financialDetails?.leaseAmount?.toLocaleString()}</span>
                       </div>
-                      <div className="flex justify-between">
+                      {/* <div className="flex justify-between">
                         <span className="text-muted-foreground">Lease Duration:</span>
-                        <span className="font-medium">{car.leaseDuration} months</span>
-                      </div>
+                        <span className="font-medium">{car?.financialDetails?.leaseDuration} months</span>
+                      </div> */}
                     </div>
                   </div>
                 )}
@@ -475,14 +481,17 @@ export function CarDetails({
                         <FileText className="h-5 w-5 text-primary" />
                         <div>
                           <p className="font-medium">Registration Card</p>
-                          {documents.registration && (
-                            <p className="text-sm text-muted-foreground">{documents.registration}</p>
+                          {car?.registrationCardPath && (
+                            <p className="text-sm text-muted-foreground">Registration Document</p>
                           )}
                         </div>
                       </div>
-                      {documents.registration && (
+                      {car?.registrationCardPath && (
                         <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                          onClick={() => handleDownload(car?.registrationCardPath)}
+                          
+                          variant="ghost" size="sm">
                             <Download className="h-4 w-4" />
                           </Button>
                           {isAdmin && (
@@ -497,7 +506,7 @@ export function CarDetails({
                         </div>
                       )}
                     </div>
-                    {!documents.registration && isAdmin && (
+                    {!car?.registrationCardPath && isAdmin && (
                       <div className="mt-2">
                         <Input
                           type="file"
@@ -523,14 +532,18 @@ export function CarDetails({
                         <FileText className="h-5 w-5 text-primary" />
                         <div>
                           <p className="font-medium">CPR Document</p>
-                          {documents.cpr && (
-                            <p className="text-sm text-muted-foreground">{documents.cpr}</p>
+                          {car?.cprDocumentPath && (
+                            <p className="text-sm text-muted-foreground">CPR Document</p>
                           )}
                         </div>
                       </div>
-                      {documents.cpr && (
+                      {car?.cprDocumentPath && (
                         <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleDownload(car?.cprDocumentPath)}
+                          >
                             <Download className="h-4 w-4" />
                           </Button>
                           {isAdmin && (
@@ -545,7 +558,7 @@ export function CarDetails({
                         </div>
                       )}
                     </div>
-                    {!documents.cpr && isAdmin && (
+                    {!car?.cprDocumentPath && isAdmin && (
                       <div className="mt-2">
                         <Input
                           type="file"
@@ -571,14 +584,18 @@ export function CarDetails({
                         <FileText className="h-5 w-5 text-primary" />
                         <div>
                           <p className="font-medium">Insurance</p>
-                          {documents.insurance && (
-                            <p className="text-sm text-muted-foreground">{documents.insurance}</p>
+                          {car?.insuranceDocumentPath && (
+                            <p className="text-sm text-muted-foreground">Insurance Document</p>
                           )}
                         </div>
                       </div>
-                      {documents.insurance && (
+                      {car?.insuranceDocumentPath && (
                         <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleDownload(car?.insuranceDocumentPath)}
+                          >
                             <Download className="h-4 w-4" />
                           </Button>
                           {isAdmin && (
@@ -593,7 +610,7 @@ export function CarDetails({
                         </div>
                       )}
                     </div>
-                    {!documents.insurance && isAdmin && (
+                    {!car?.insuranceDocumentPath && isAdmin && (
                       <div className="mt-2">
                         <Input
                           type="file"

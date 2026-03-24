@@ -6,6 +6,7 @@ export type UserRole = 'Admin' | 'SuperAdmin' | 'User' | 'Operations' | 'Driver'
 export type AlertType = 'Insurance' | 'Registration' | 'LeaseRent' | 'Installment';
 
 export interface Car {
+  financialDetails: any;
   id: string;
   make: string;
   model: string;

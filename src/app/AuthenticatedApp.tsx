@@ -148,6 +148,12 @@ export default function AuthenticatedApp({ user, onLogout }) {
     return mockCars.find((car) => car.id === carId);
   };
 
+  const handleCarDetailsEdit = () => {
+  // The selectedCar should already be set when viewing details
+  setCurrentView('edit-car');
+  // No need to set selectedCar again as it should already be set
+};
+
   const handleRefresh = async () => {
     const newToken = await refreshToken();
 
@@ -405,7 +411,7 @@ export default function AuthenticatedApp({ user, onLogout }) {
               onSave={(updatedCar) => {
                 console.log('Saving car updates:', updatedCar);
                 setSelectedCar(updatedCar);
-                setCurrentView('car-details');
+                setCurrentView('cars');
               }}
               onCancel={() => setCurrentView('car-details')}
             />
@@ -422,7 +428,8 @@ export default function AuthenticatedApp({ user, onLogout }) {
                   setCurrentView('cars');
                   setSelectedCar(null);
                 }} 
-                onEdit={() => setCurrentView('edit-car')}
+                // onEdit={() => setCurrentView('edit-car')}
+                onEdit={handleCarDetailsEdit}
                 onViewRecord={(id) => {
                   setSelectedMoneyRecordId(id);
                   setCurrentView('money-record-details');

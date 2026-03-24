@@ -10,6 +10,7 @@ import { Car, PaymentType, LeaseType } from '@/types';
 import { FileText, Check, ArrowLeft, ArrowRight, Download, Eye, UserPlus } from 'lucide-react';
 import { soldCar } from '@/app/api/CarInventory/sellCar';
 import { leaseCar } from "@/app/api/CarInventory/leaseCar";
+import {uploadImage } from "@/app/api/UploadImage/uploadImage";
 
 interface SellCarModalProps {
   carId: string;
@@ -31,6 +32,7 @@ export function SellCarModal({ carId, isOpen, onClose, car, userRole }: SellCarM
     email: '',
     phone: '',
     cpr: '',
+    cprDocument: null,
     address: '',
   });
 
@@ -72,6 +74,36 @@ export function SellCarModal({ carId, isOpen, onClose, car, userRole }: SellCarM
   // Step 3: Review
   const [agreementGenerated, setAgreementGenerated] = useState(false);
   const [invoiceGenerated, setInvoiceGenerated] = useState(false);
+   const [imageUploading, setImageUploading] = useState(false);
+    const [carPhoto, setCarPhoto] = useState(null);
+
+   const handleFileChange = async (e, type) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+  
+    try {
+      setImageUploading(true);
+  
+      const fileUrl = await uploadImage(file);
+  
+      if (type === "cprDocument") {
+        setCarPhoto(fileUrl);
+  
+        setPurchaserDetails((prev) => ({
+          ...prev,
+          cprDocument: fileUrl
+        }));
+  
+        return;
+      }
+  
+  
+    } catch (error) {
+      console.error("Upload failed:", error);
+    } finally {
+      setImageUploading(false);
+    }
+  };
 
   const handleNext = () => {
     if (step < 3) setStep(step + 1);
@@ -167,7 +199,7 @@ export function SellCarModal({ carId, isOpen, onClose, car, userRole }: SellCarM
     onClose();
     // Reset state
     setStep(1);
-    setPurchaserDetails({ name: '', email: '', phone: '', cpr: '', address: '' });
+    setPurchaserDetails({ name: '', email: '', phone: '', cpr: '', cprDocument: null, address: '' });
     setPaymentTerms({ 
       sellingPrice: '', 
       paymentType: 'Full', 
@@ -224,6 +256,14 @@ export function SellCarModal({ carId, isOpen, onClose, car, userRole }: SellCarM
 
         {/* Progress Indicator */}
         <div className="mb-6">
+           {imageUploading && (
+  <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+    <div className="flex flex-col items-center gap-3 bg-white p-6 rounded-lg shadow-lg">
+      <div className="w-8 h-8 border-4 border-gray-300 border-t-primary rounded-full animate-spin"></div>
+      <p className="text-sm font-medium text-black">Uploading document...</p>
+    </div>
+  </div>
+)}
           <div className="flex items-center justify-center gap-4">
             {[1, 2, 3].map((s) => (
               <div key={s} className="flex items-center">
@@ -297,16 +337,18 @@ export function SellCarModal({ carId, isOpen, onClose, car, userRole }: SellCarM
                 </div>
 
                 <div>
-                  <Label htmlFor="cpr-upload">Upload CPR Document</Label>
+                  <Label htmlFor="cpr-upload">Upload CPR Document (ID Card)</Label>
                   <Input
                     id="cpr-upload"
                     type="file"
-                    accept="image/*,.pdf"
+                    disabled={imageUploading}
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={(e) => handleFileChange(e, "cprDocument")}
                     className="bg-input-background mt-1"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Upload copy of purchaser's CPR (ID card)
-                  </p>
+                 {purchaserDetails.cprDocument && (
+                      <p className="text-xs text-green-500 mt-1">✓ File Uploaded</p>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
