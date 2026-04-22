@@ -190,6 +190,7 @@ export function Company({ userRole }: CompaniesProps) {
           totalProfit: 0
         }),
       });
+      //wewe
       
       if (response.ok) {
         await fetchCompanies();
