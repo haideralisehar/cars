@@ -8,9 +8,10 @@ export const getUserFromToken = () => {
 
   try {
     const decoded = jwtDecode(token);
+    console.log(decoded);
 
     return {
-      role: decoded.role,
+      role: decoded,
     };
   } catch (error) {
     console.error("Invalid token", error);

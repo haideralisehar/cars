@@ -10,22 +10,23 @@ import { Car, PaymentType, LeaseType } from '@/types';
 import { FileText, Check, ArrowLeft, ArrowRight, Download, Eye, UserPlus } from 'lucide-react';
 import { soldCar } from '@/app/api/CarInventory/sellCar';
 import { leaseCar } from "@/app/api/CarInventory/leaseCar";
-import {uploadImage } from "@/app/api/UploadImage/uploadImage";
+import { uploadImage } from "@/app/api/UploadImage/uploadImage";
 
 interface SellCarModalProps {
   carId: string;
   isOpen: boolean;
   onClose: () => void;
+  onRefresh?: () => void; // Add this optional prop
   car: Car;
   userRole: 'Admin' | 'SuperAdmin' | 'User' | 'Operations' | 'Driver' | 'Investor';
 }
 
-export function SellCarModal({ carId, isOpen, onClose, car, userRole }: SellCarModalProps) {
+export function SellCarModal({ carId, isOpen, onClose, car, userRole, onRefresh }: SellCarModalProps) {
   const [step, setStep] = useState(1);
-   const [solding, setsolding] = useState(false);
+  const [solding, setsolding] = useState(false);
 
-  
-  
+
+
   // Step 1: Purchaser Details
   const [purchaserDetails, setPurchaserDetails] = useState({
     name: '',
@@ -48,24 +49,24 @@ export function SellCarModal({ carId, isOpen, onClose, car, userRole }: SellCarM
   });
 
   useEffect(() => {
-  const totalPrice = parseFloat(paymentTerms.sellingPrice) || 0;
-  const advance = parseFloat(paymentTerms.advanceAmount) || 0;
-  const count = parseInt(paymentTerms.installmentCount) || 1;
+    const totalPrice = parseFloat(paymentTerms.sellingPrice) || 0;
+    const advance = parseFloat(paymentTerms.advanceAmount) || 0;
+    const count = parseInt(paymentTerms.installmentCount) || 1;
 
-  if (paymentTerms.paymentType === 'Installment' && totalPrice > 0) {
-    const installment = ((totalPrice - advance) / count).toFixed(2);
+    if (paymentTerms.paymentType === 'Installment' && totalPrice > 0) {
+      const installment = ((totalPrice - advance) / count).toFixed(2);
 
-    setPaymentTerms(prev => ({
-      ...prev,
-      installmentAmount: installment
-    }));
-  }
-}, [
-  paymentTerms.sellingPrice,
-  paymentTerms.advanceAmount,
-  paymentTerms.installmentCount,
-  paymentTerms.paymentType
-]);
+      setPaymentTerms(prev => ({
+        ...prev,
+        installmentAmount: installment
+      }));
+    }
+  }, [
+    paymentTerms.sellingPrice,
+    paymentTerms.advanceAmount,
+    paymentTerms.installmentCount,
+    paymentTerms.paymentType
+  ]);
 
 
 
@@ -74,30 +75,30 @@ export function SellCarModal({ carId, isOpen, onClose, car, userRole }: SellCarM
   // Step 3: Review
   const [agreementGenerated, setAgreementGenerated] = useState(false);
   const [invoiceGenerated, setInvoiceGenerated] = useState(false);
-   const [imageUploading, setImageUploading] = useState(false);
-    const [carPhoto, setCarPhoto] = useState(null);
+  const [imageUploading, setImageUploading] = useState(false);
+  const [carPhoto, setCarPhoto] = useState(null);
 
-   const handleFileChange = async (e, type) => {
+  const handleFileChange = async (e, type) => {
     const file = e.target.files?.[0];
     if (!file) return;
-  
+
     try {
       setImageUploading(true);
-  
+
       const fileUrl = await uploadImage(file);
-  
+
       if (type === "cprDocument") {
         setCarPhoto(fileUrl);
-  
+
         setPurchaserDetails((prev) => ({
           ...prev,
           cprDocument: fileUrl
         }));
-  
+
         return;
       }
-  
-  
+
+
     } catch (error) {
       console.error("Upload failed:", error);
     } finally {
@@ -116,22 +117,22 @@ export function SellCarModal({ carId, isOpen, onClose, car, userRole }: SellCarM
   const handleConfirmSale = async () => {
 
     // Email validation helper function
-      const isValidEmail = (email) => {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-      };  
+    const isValidEmail = (email) => {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    };
 
     const isStepOneValid = purchaserDetails.name.trim() !== '' && purchaserDetails.cpr.trim() !== '' && purchaserDetails.phone.trim() !== '';
-    const isStepTwoValid = paymentTerms.sellingPrice.trim() !== '' && parseFloat(paymentTerms.sellingPrice) > 0 ;
+    const isStepTwoValid = paymentTerms.sellingPrice.trim() !== '' && parseFloat(paymentTerms.sellingPrice) > 0;
     const isInstallmentValid = paymentTerms.advanceAmount.trim() !== '' && parseFloat(paymentTerms.advanceAmount) >= 0 && parseFloat(paymentTerms.advanceAmount) <= parseFloat(paymentTerms.sellingPrice);
 
     const isCommissionValid =
-  paymentTerms.commission.trim() !== '' &&
-  parseFloat(paymentTerms.commission) >= 0 ;
+      paymentTerms.commission.trim() !== '' &&
+      parseFloat(paymentTerms.commission) >= 0;
 
     const isemail = isValidEmail(purchaserDetails.email);
 
-    if(!isemail && purchaserDetails.email.trim() !== '') {
+    if (!isemail && purchaserDetails.email.trim() !== '') {
       alert('Please enter a valid email address.');
       setStep(1);
       return;
@@ -148,7 +149,7 @@ export function SellCarModal({ carId, isOpen, onClose, car, userRole }: SellCarM
       return;
     }
 
-    if(paymentTerms.paymentType === 'Installment' && !isInstallmentValid) {
+    if (paymentTerms.paymentType === 'Installment' && !isInstallmentValid) {
       alert('Please enter a valid advance amount.');
       setStep(2);
       return;
@@ -170,47 +171,54 @@ export function SellCarModal({ carId, isOpen, onClose, car, userRole }: SellCarM
 
     try {
 
-    const payload = {
-      carId: carId,
-      purchaserName: purchaserDetails.name,
-      cpr: purchaserDetails.cpr,
-      phone: purchaserDetails.phone,
-      email: purchaserDetails.email,
-      address: purchaserDetails.address,
-      sellingPrice: parseFloat(paymentTerms.sellingPrice),
+      const payload = {
+        carId: carId,
+        purchaserName: purchaserDetails.name,
+        cpr: purchaserDetails.cpr,
+        cprDocumentUploadPath: purchaserDetails.cprDocument,
+        phone: purchaserDetails.phone,
+        email: purchaserDetails.email,
+        address: purchaserDetails.address,
+        sellingPrice: parseFloat(paymentTerms.sellingPrice),
 
-      paymentType: paymentTerms.paymentType,
-      advanceAmount: paymentTerms.paymentType === 'Installment' ?  parseFloat(paymentTerms.advanceAmount) : null,
-      numberOfInstallments: paymentTerms.paymentType === 'Installment' ?  parseInt(paymentTerms.installmentCount) : null,
-      commissionType: paymentTerms.commissionType,
-      commissionAmount: paymentTerms.commissionType === 'Percentage' ?  (parseFloat(paymentTerms.sellingPrice) * parseFloat(paymentTerms.commission) / 100).toFixed(2) : parseFloat(paymentTerms.commission).toFixed(2)
-    }
+        paymentType: paymentTerms.paymentType,
+        advanceAmount: paymentTerms.paymentType === 'Installment' ? parseFloat(paymentTerms.advanceAmount) : null,
+        numberOfInstallments: paymentTerms.paymentType === 'Installment' ? parseInt(paymentTerms.installmentCount) : null,
+        commissionType: paymentTerms.commissionType,
+        commissionAmount: paymentTerms.commissionType === 'Percentage' ? (parseFloat(paymentTerms.sellingPrice) * parseFloat(paymentTerms.commission) / 100).toFixed(2) : parseFloat(paymentTerms.commission).toFixed(2)
+      }
 
-      
-    console.log('Sale confirmed', payload);
 
-    const response = await soldCar(payload);
+
+
+      console.log('Sale confirmed', payload);
+
+      const response = await soldCar(payload);
 
       console.log("API Response:", response);
       setsolding(false);
 
       alert('Car sold successfully!');
+      // Call the refresh callback if provided
+      if (onRefresh) {
+        onRefresh();
+      }
 
-    onClose();
-    // Reset state
-    setStep(1);
-    setPurchaserDetails({ name: '', email: '', phone: '', cpr: '', cprDocument: null, address: '' });
-    setPaymentTerms({ 
-      sellingPrice: '', 
-      paymentType: 'Full', 
-      advanceAmount: '', 
-      installmentCount: '6', 
-      installmentAmount: '',
-      commission: '',
-      commissionType: 'Fixed'
-    });
+      onClose();
+      // Reset state
+      setStep(1);
+      setPurchaserDetails({ name: '', email: '', phone: '', cpr: '', cprDocument: null, address: '' });
+      setPaymentTerms({
+        sellingPrice: '',
+        paymentType: 'Full',
+        advanceAmount: '',
+        installmentCount: '6',
+        installmentAmount: '',
+        commission: '',
+        commissionType: 'Fixed'
+      });
 
-    } catch (error) { 
+    } catch (error) {
       setsolding(false);
       console.error('Error confirming sale:', error);
       alert('An error occurred while confirming the sale. Please try again.');
@@ -256,33 +264,31 @@ export function SellCarModal({ carId, isOpen, onClose, car, userRole }: SellCarM
 
         {/* Progress Indicator */}
         <div className="mb-6">
-           {imageUploading && (
-  <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-    <div className="flex flex-col items-center gap-3 bg-white p-6 rounded-lg shadow-lg">
-      <div className="w-8 h-8 border-4 border-gray-300 border-t-primary rounded-full animate-spin"></div>
-      <p className="text-sm font-medium text-black">Uploading document...</p>
-    </div>
-  </div>
-)}
+          {imageUploading && (
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+              <div className="flex flex-col items-center gap-3 bg-white p-6 rounded-lg shadow-lg">
+                <div className="w-8 h-8 border-4 border-gray-300 border-t-primary rounded-full animate-spin"></div>
+                <p className="text-sm font-medium text-black">Uploading document...</p>
+              </div>
+            </div>
+          )}
           <div className="flex items-center justify-center gap-4">
             {[1, 2, 3].map((s) => (
               <div key={s} className="flex items-center">
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-medium text-sm ${
-                    s === step
+                  className={`w-10 h-10 rounded-full flex items-center justify-center font-medium text-sm ${s === step
                       ? 'bg-primary text-primary-foreground'
                       : s < step
-                      ? 'bg-primary/20 text-primary'
-                      : 'bg-secondary text-muted-foreground'
-                  }`}
+                        ? 'bg-primary/20 text-primary'
+                        : 'bg-secondary text-muted-foreground'
+                    }`}
                 >
                   {s < step ? <Check className="h-5 w-5" /> : s}
                 </div>
                 {s < 3 && (
                   <div
-                    className={`w-16 h-1 ${
-                      s < step ? 'bg-primary' : 'bg-secondary'
-                    }`}
+                    className={`w-16 h-1 ${s < step ? 'bg-primary' : 'bg-secondary'
+                      }`}
                   />
                 )}
               </div>
@@ -312,7 +318,7 @@ export function SellCarModal({ carId, isOpen, onClose, car, userRole }: SellCarM
             <Card className="bg-secondary/30 border-border">
               <CardContent className="p-6 space-y-4">
                 <h3 className="font-medium text-lg mb-4">Purchaser Information</h3>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="purchaser-name">Full Name *</Label>
@@ -342,13 +348,13 @@ export function SellCarModal({ carId, isOpen, onClose, car, userRole }: SellCarM
                     id="cpr-upload"
                     type="file"
                     disabled={imageUploading}
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={(e) => handleFileChange(e, "cprDocument")}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => handleFileChange(e, "cprDocument")}
                     className="bg-input-background mt-1"
                   />
-                 {purchaserDetails.cprDocument && (
-                      <p className="text-xs text-green-500 mt-1">✓ File Uploaded</p>
-                    )}
+                  {purchaserDetails.cprDocument && (
+                    <p className="text-xs text-green-500 mt-1">✓ File Uploaded</p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -410,8 +416,8 @@ export function SellCarModal({ carId, isOpen, onClose, car, userRole }: SellCarM
                   </div>
                   <div>
                     <Label htmlFor="payment-type">Payment Type *</Label>
-                    <Select 
-                      value={paymentTerms.paymentType} 
+                    <Select
+                      value={paymentTerms.paymentType}
                       onValueChange={(value: PaymentType) => setPaymentTerms({ ...paymentTerms, paymentType: value })}
                     >
                       <SelectTrigger className="bg-input-background">
@@ -652,7 +658,7 @@ export function SellCarModal({ carId, isOpen, onClose, car, userRole }: SellCarM
                 Back
               </Button>
             )}
-            
+
             <Button variant="outline" className="ml-auto" onClick={onClose}>
               Cancel
             </Button>
@@ -690,14 +696,16 @@ interface LeaseCarModalProps {
   carId: string;
   isOpen: boolean;
   onClose: () => void;
+  onRefresh?: () => void;
   car: Car;
   userRole: 'Admin' | 'SuperAdmin' | 'User' | 'Operations' | 'Driver' | 'Investor';
 }
 
-export function LeaseCarModal({carId, isOpen, onClose, car, userRole }: LeaseCarModalProps) {
+
+export function LeaseCarModal({ carId, isOpen, onClose, car, userRole, onRefresh }: LeaseCarModalProps) {
   const [step, setStep] = useState(1);
   const [solding, setsolding] = useState(false);
-  
+
   // Step 1: Lessee Details
   const [lesseeDetails, setLesseeDetails] = useState({
     name: '',
@@ -795,12 +803,12 @@ export function LeaseCarModal({carId, isOpen, onClose, car, userRole }: LeaseCar
         email: lesseeDetails.email,
         address: lesseeDetails.address,
         drivingLicenseNumber: lesseeDetails.licenseNumber,
-//hjkgg
+        //hjkgg
         // Leaser Terms
         leaseType: leaseTerms.leaseType,
         leaseRate: parseFloat(leaseTerms.leaseRate),
-        duration: parseInt(leaseTerms.duration),
-        advanceAmount: parseFloat(leaseTerms.advanceAmount),
+        durationDays: parseInt(leaseTerms.duration),
+        advancePayment: parseFloat(leaseTerms.advanceAmount),
         securityDeposit: parseFloat(leaseTerms.securityDeposit),
 
         commissionType: leaseTerms.commissionType,
@@ -818,28 +826,33 @@ export function LeaseCarModal({carId, isOpen, onClose, car, userRole }: LeaseCar
 
       alert('Car leased successfully!');
 
+       // Call the refresh callback if provided
+      if (onRefresh) {
+        onRefresh();
+      }
+
       onClose();
       setStep(1);
       setLesseeDetails({ name: '', email: '', phone: '', cpr: '', licenseNumber: '', address: '' });
-      setLeaseTerms({ 
-        leaseType: 'Daily', 
-        leaseRate: car?.leaseAmount?.toString() || '', 
-        duration: '', 
+      setLeaseTerms({
+        leaseType: 'Daily',
+        leaseRate: car?.leaseAmount?.toString() || '',
+        duration: '',
         advanceAmount: '',
         securityDeposit: '',
         commission: '',
         commissionType: 'Fixed'
       });
-      
 
-  } catch (error) {
-    setsolding(false);
-    console.error('Error confirming sale:', error);
-    alert('An error occurred while confirming the lease. Please try again.');
-  } finally {
-    setsolding(false);
-  }
-};
+
+    } catch (error) {
+      setsolding(false);
+      console.error('Error confirming sale:', error);
+      alert('An error occurred while confirming the lease. Please try again.');
+    } finally {
+      setsolding(false);
+    }
+  };
 
   // const handleConfirmLease = () => {
   //   console.log('Lease confirmed', { lesseeDetails, leaseTerms });
@@ -898,21 +911,19 @@ export function LeaseCarModal({carId, isOpen, onClose, car, userRole }: LeaseCar
             {[1, 2, 3].map((s) => (
               <div key={s} className="flex items-center">
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-medium text-sm ${
-                    s === step
+                  className={`w-10 h-10 rounded-full flex items-center justify-center font-medium text-sm ${s === step
                       ? 'bg-primary text-primary-foreground'
                       : s < step
-                      ? 'bg-primary/20 text-primary'
-                      : 'bg-secondary text-muted-foreground'
-                  }`}
+                        ? 'bg-primary/20 text-primary'
+                        : 'bg-secondary text-muted-foreground'
+                    }`}
                 >
                   {s < step ? <Check className="h-5 w-5" /> : s}
                 </div>
                 {s < 3 && (
                   <div
-                    className={`w-16 h-1 ${
-                      s < step ? 'bg-primary' : 'bg-secondary'
-                    }`}
+                    className={`w-16 h-1 ${s < step ? 'bg-primary' : 'bg-secondary'
+                      }`}
                   />
                 )}
               </div>
@@ -942,7 +953,7 @@ export function LeaseCarModal({carId, isOpen, onClose, car, userRole }: LeaseCar
             <Card className="bg-secondary/30 border-border">
               <CardContent className="p-6 space-y-4">
                 <h3 className="font-medium text-lg mb-4">Lessee Information</h3>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="lessee-name">Full Name *</Label>
@@ -1025,8 +1036,8 @@ export function LeaseCarModal({carId, isOpen, onClose, car, userRole }: LeaseCar
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="lease-type">Lease Type *</Label>
-                    <Select 
-                      value={leaseTerms.leaseType} 
+                    <Select
+                      value={leaseTerms.leaseType}
                       onValueChange={(value: LeaseType) => setLeaseTerms({ ...leaseTerms, leaseType: value })}
                     >
                       <SelectTrigger className="bg-input-background">
@@ -1238,7 +1249,7 @@ export function LeaseCarModal({carId, isOpen, onClose, car, userRole }: LeaseCar
                 Back
               </Button>
             )}
-            
+
             <Button variant="outline" className="ml-auto" onClick={onClose}>
               Cancel
             </Button>

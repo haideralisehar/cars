@@ -3,7 +3,7 @@ const BASE_URL =
 
 export const soldCar = async (soldCarData) => {
   try {
-    const response = await fetch(`${BASE_URL}/cars/sell`, {
+    const response = await fetch(`${BASE_URL}/Sales/sell`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

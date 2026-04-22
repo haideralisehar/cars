@@ -22,6 +22,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
+  const [userData, setuserData] = useState(null);
 
   useEffect(() => {
     const initializeAuth = () => {
@@ -31,7 +32,8 @@ function App() {
         if (token) {
           // Decode token synchronously
           const decodedUser = getUserFromToken(token);
-          setUser(decodedUser);
+          setUser(decodedUser.role);
+          setuserData(decodedUser);
           setIsAuthenticated(true);
         } else {
           setIsAuthenticated(false);
@@ -76,6 +78,7 @@ function App() {
             <ProtectedRoute isAuthenticated={isAuthenticated}>
               <AuthenticatedApp
                 user={user}
+                userData={userData}
                 onLogout={handleLogout}
               />
             </ProtectedRoute>

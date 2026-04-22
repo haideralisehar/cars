@@ -22,7 +22,7 @@ import { Alert, Reminder } from '@/types';
 type TimePeriod = 'Weekly' | 'Monthly' | 'Yearly';
 
 interface DashboardProps {
-  userRole: 'Admin' | 'Super Admin' | 'User' | 'Operations' | 'Driver' | 'Investor';
+  userRole: 'Admin' | 'SuperAdmin' | 'User' | 'Operations' | 'Driver' | 'Investor';
   onNavigateToCar: (carId: string) => void;
 }
 
@@ -191,7 +191,7 @@ export function Dashboard({ userRole, onNavigateToCar }: DashboardProps) {
           </Card>
 
           {/* Financial KPIs - Super Admin & Admin Only */}
-          {(userRole === 'Admin' || userRole === 'Super Admin') && (
+          {(userRole === 'Admin' || userRole === 'SuperAdmin') && (
             <>
               <Card className="bg-card border-border">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">

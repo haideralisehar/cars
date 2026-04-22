@@ -263,7 +263,7 @@
 //   const [loading, setLoading] = useState(true);
 //   const [searchTerm, setSearchTerm] = useState('');
 //   const [sourceFilter, setSourceFilter] = useState('all');
-  
+
 //   // Pagination state
 //   const [currentPage, setCurrentPage] = useState(1);
 //   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -338,7 +338,7 @@
 //   const getPageNumbers = () => {
 //     const pageNumbers = [];
 //     const maxPagesToShow = 5;
-    
+
 //     if (totalPages <= maxPagesToShow) {
 //       // Show all pages
 //       for (let i = 1; i <= totalPages; i++) {
@@ -368,7 +368,7 @@
 //         pageNumbers.push(totalPages);
 //       }
 //     }
-    
+
 //     return pageNumbers;
 //   };
 
@@ -704,10 +704,10 @@
 // }
 
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { Card, CardContent } from '@/app/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
-import { Plus, ShoppingCart, Key, DollarSign, Edit, Search, Filter, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RotateCcw } from 'lucide-react';
+import { Plus, ShoppingCart, Key, DollarSign, Edit, Search, Filter, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RotateCcw, Loader2 } from 'lucide-react';
 import { getInventory } from "@/app/api/CarInventory/getcarinventory";
 import { Input } from '@/app/components/ui/input';
 import {
@@ -717,6 +717,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/components/ui/select";
+import { getCarInstallments } from '@/app/api/CarInventory/GetCarInstallment';
+import { payCarInstallment } from '@/app/api/CarInventory/payCarInstallments';
+
+
+
+// Define props interface
+interface CarsInventoryProps {
+  onAddNewCar: () => void;
+  onCarClick: (car: any) => void;
+  onSellCar: (car: any, fetchCars: () => void) => void;
+  onLeaseCar: (car: any, fetchCars: () => void) => void;
+  onAddExpense: (carId: string) => void;
+  userRole: string;
+}
 
 export function CarsInventory({
   onAddNewCar,
@@ -725,7 +739,7 @@ export function CarsInventory({
   onLeaseCar,
   onAddExpense,
   userRole,
-}) {
+}: CarsInventoryProps) {
 
   const [cars, setCars] = useState([]);
   const [filteredCars, setFilteredCars] = useState([]);
@@ -733,10 +747,15 @@ export function CarsInventory({
   const [searchTerm, setSearchTerm] = useState('');
   const [sourceFilter, setSourceFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  // Installment payment modal state
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedCarForPayment, setSelectedCarForPayment] = useState(null);
+  const [selectedSaleForPayment, setSelectedSaleForPayment] = useState(null);
 
   const isAdmin = userRole === 'Admin' || userRole === 'SuperAdmin';
   const canAddExpense = isAdmin || userRole === 'Operations' || userRole === 'Driver';
@@ -775,7 +794,7 @@ export function CarsInventory({
     // Filter by search term (car name/make/model and registration number)
     if (searchTerm.trim() !== '') {
       const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(car => 
+      filtered = filtered.filter(car =>
         car.make?.toLowerCase().includes(searchLower) ||
         car.model?.toLowerCase().includes(searchLower) ||
         `${car.make} ${car.model}`.toLowerCase().includes(searchLower) ||
@@ -821,7 +840,7 @@ export function CarsInventory({
   const getPageNumbers = () => {
     const pageNumbers = [];
     const maxPagesToShow = 5;
-    
+
     if (totalPages <= maxPagesToShow) {
       // Show all pages
       for (let i = 1; i <= totalPages; i++) {
@@ -851,7 +870,7 @@ export function CarsInventory({
         pageNumbers.push(totalPages);
       }
     }
-    
+
     return pageNumbers;
   };
 
@@ -878,6 +897,41 @@ export function CarsInventory({
         return 'bg-cyan-600 text-white';
       default:
         return 'bg-muted text-muted-foreground';
+    }
+  };
+
+  // Handle Pay Installment click
+  const handlePayInstallment = (car) => {
+    
+    
+  
+      setSelectedCarForPayment(car);
+      setSelectedSaleForPayment(car);
+      setShowPaymentModal(true);
+   
+  };
+
+  // Submit installment payment
+  const submitInstallmentPayment = async (paymentData: any) => {
+    try {
+      const response = await payCarInstallment(paymentData.id);
+      
+      if (response.remaining === 0) {
+        alert(`Congratulations! You have completed all your installments.`);
+      } else {
+        alert(`Installment paid successfully. Your remaining amount is: ${response.remaining}`);
+      }
+      
+      setShowPaymentModal(false);
+      setSelectedCarForPayment(null);
+      setSelectedSaleForPayment(null);
+      
+      // Refresh the inventory to update the car's status
+      await fetchCars();
+      
+    } catch (error) {
+      console.error('Error paying installment:', error);
+      alert('Failed to process installment payment. Please try again.');
     }
   };
 
@@ -978,9 +1032,8 @@ export function CarsInventory({
               {currentCars.map((car) => (
                 <Card
                   key={car.id}
-                  className={`bg-card border-border overflow-hidden transition-all group ${
-                    isAdmin ? 'hover:border-primary cursor-pointer' : 'cursor-default'
-                  }`}
+                  className={`bg-card border-border overflow-hidden transition-all group ${isAdmin ? 'hover:border-primary cursor-pointer' : 'cursor-default'
+                    }`}
                 >
                   {/* Image */}
                   <div
@@ -990,9 +1043,8 @@ export function CarsInventory({
                     <img
                       src={car.carImagePath || '/placeholder-car.png'}
                       alt={`${car.make} ${car.model}`}
-                      className={`w-full h-full object-cover transition-transform ${
-                        isAdmin ? 'group-hover:scale-105' : ''
-                      }`}
+                      className={`w-full h-full object-cover transition-transform ${isAdmin ? 'group-hover:scale-105' : ''
+                        }`}
                       onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
                         const target = e.target as HTMLImageElement;
                         target.src = "https://www.freeiconspng.com/thumbs/no-image-icon/no-image-icon-6.png";
@@ -1025,12 +1077,25 @@ export function CarsInventory({
                       </div>
 
                       <div className="flex items-center justify-between">
-                        <Badge
-                          className={getSourceColor(car.carSource)}
-                          variant="secondary"
-                        >
-                          {car.carSource}
-                        </Badge>
+                        <div>
+                          <Badge
+                            className={getSourceColor(car.carSource)}
+                            variant="secondary"
+                          >
+                            {car.carSource}
+                          </Badge>
+                          {car.financialDetails?.purchaseStatus === 'Pending' && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handlePayInstallment(car);
+                              }}
+                              style={{ backgroundColor: "red", borderRadius: "5px", color: "white", padding: "2px 5px", marginLeft: "10px", fontSize: "12px", cursor: "pointer" }}
+                            >
+                              Pay Installment
+                            </button>
+                          )}
+                        </div>
 
                         <p className="text-sm text-muted-foreground">
                           {car.registrationNumber}
@@ -1049,7 +1114,7 @@ export function CarsInventory({
                           className="flex-1"
                           onClick={(e) => {
                             e.stopPropagation();
-                            onSellCar(car);
+                            onSellCar(car, fetchCars);
                           }}
                         >
                           <ShoppingCart className="h-4 w-4 mr-1" />
@@ -1062,7 +1127,7 @@ export function CarsInventory({
                           className="flex-1"
                           onClick={(e) => {
                             e.stopPropagation();
-                            onLeaseCar(car);
+                            onLeaseCar(car, fetchCars);
                           }}
                         >
                           <Key className="h-4 w-4 mr-1" />
@@ -1210,6 +1275,243 @@ export function CarsInventory({
           </div>
         )}
       </div>
+
+      {/* Installment Payment Modal */}
+      {showPaymentModal && selectedSaleForPayment && (
+        <InstallmentPaymentModal
+          sale={selectedSaleForPayment}
+          car={selectedCarForPayment}
+          onClose={() => setShowPaymentModal(false)}
+          onSubmit={submitInstallmentPayment}
+        />
+      )}
+    </div>
+  );
+}
+
+// Installment Payment Modal Component
+// Installment Payment Modal Component
+function InstallmentPaymentModal({ sale, car, onClose, onSubmit }) {
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
+  const [loading, setLoading] = useState(false);
+  const [installments, setInstallments] = useState([]);
+  const [selectedInstallment, setSelectedInstallment] = useState(null);
+  const [loadingInstallments, setLoadingInstallments] = useState(false);
+
+  // Fetch installments when modal opens
+  useEffect(() => {
+    fetchInstallments();
+  }, [sale.id]);
+
+  const fetchInstallments = async () => {
+    setLoadingInstallments(true);
+    try {
+      const response = await getCarInstallments(car.id);
+      console.log("Installments response: ", response);
+      
+      // Handle different response formats
+      let installmentsArray = [];
+      if (Array.isArray(response)) {
+        installmentsArray = response;
+      } else if (response && response.data && Array.isArray(response.data)) {
+        installmentsArray = response.data;
+      } else if (response && response.installments && Array.isArray(response.installments)) {
+        installmentsArray = response.installments;
+      } else {
+        installmentsArray = [];
+        console.warn("Unexpected response format:", response);
+      }
+      
+      setInstallments(installmentsArray);
+    } catch (error) {
+      console.error("Error fetching installments:", error);
+      setInstallments([]);
+    } finally {
+      setLoadingInstallments(false);
+    }
+  };
+
+  const handleInstallmentSelect = (installmentId) => {
+    const selected = installments.find(inst => inst.id === installmentId);
+    setSelectedInstallment(selected || null);
+    // Set the payment amount to the selected installment's amount
+    if (selected) {
+      setPaymentAmount(selected.amount?.toString() || '');
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // alert(selectedInstallment?.id);
+    if (!selectedInstallment) {
+      alert("Please select an installment to pay");
+      return;
+    }
+    
+    setLoading(true);
+    await onSubmit({
+      id: selectedInstallment.id,
+    //   amount: parseFloat(paymentAmount),
+    //   date: paymentDate,
+    //   saleId: sale.id,
+    //   installmentId: selectedInstallment?.id,
+    //   remainingAmount: (sale.remainingAmount || 0) - parseFloat(paymentAmount),
+    });
+    setLoading(false);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <Card className="w-full max-w-md max-h-[90vh] flex flex-col">
+        <CardHeader className="flex-shrink-0">
+          <CardTitle>Pay Installment</CardTitle>
+          <button
+            onClick={onClose}
+            className="absolute right-4 top-4 text-muted-foreground hover:text-foreground"
+          >
+            ×
+          </button>
+        </CardHeader>
+        <CardContent className="flex-1 overflow-y-auto">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Car</label>
+              <p className="text-sm text-muted-foreground">
+                {car?.make} {car?.model} {car?.year}
+              </p>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Registration Number</label>
+              <p className="text-sm text-muted-foreground">{car?.registrationNumber}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Purchaser</label>
+              <p className="text-sm text-muted-foreground">{sale.purchaserName}</p>
+            </div>
+            
+            {/* Installment Dropdown */}
+            <div>
+              <label className="text-sm font-medium mb-2 block">Select Installment *</label>
+              <Select onValueChange={handleInstallmentSelect} disabled={loadingInstallments}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select an installment" />
+                </SelectTrigger>
+                <SelectContent>
+                  {loadingInstallments ? (
+                    <div className="flex items-center justify-center py-6">
+                      <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                      <span className="ml-2 text-sm text-muted-foreground">Loading installments...</span>
+                    </div>
+                  ) : installments.length === 0 ? (
+                    <div className="text-center py-6 text-sm text-muted-foreground">
+                      No installments found
+                    </div>
+                  ) : (
+                    installments.map((installment) => (
+                      <SelectItem 
+                        key={installment.id} 
+                        value={installment.id} 
+                        disabled={installment.isPaid}
+                      >
+                        Installment #{installment.installmentNumber} - BHD {installment.amount?.toLocaleString()} 
+                        {installment.isPaid ? ` - Paid on ${installment.paidDate?.split('T')[0]}` : 
+                         installment.dueDate ? ` - Due: ${new Date(installment.dueDate).toLocaleDateString()}` : ""}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Show selected installment details */}
+            {selectedInstallment && (
+              <div className="bg-secondary/20 p-3 rounded-md">
+                <div className="flex justify-between mb-2">
+                  <span className="text-sm font-medium">Installment Number:</span>
+                  <span className="text-sm">{selectedInstallment.installmentNumber}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium">Installment Amount:</span>
+                  <span className="text-sm font-bold text-primary">
+                    BHD {selectedInstallment.amount?.toLocaleString()}
+                  </span>
+                </div>
+                {selectedInstallment.dueDate && (
+                  <div className="flex justify-between mt-2">
+                    <span className="text-sm font-medium">Due Date:</span>
+                    <span className="text-sm">
+                      {new Date(selectedInstallment.dueDate).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
+                {selectedInstallment.isPaid && selectedInstallment.paidDate && (
+                  <div className="flex justify-between mt-2">
+                    <span className="text-sm font-medium">Paid Date:</span>
+                    <span className="text-sm text-green-600">
+                      {new Date(selectedInstallment.paidDate).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div>
+              <label className="text-sm font-medium mb-2 block">Remaining Amount</label>
+              <p className="text-lg font-bold text-primary">
+                BHD {car?.financialDetails?.remainingAmount.toLocaleString() || 0}
+              </p>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-2 block">Per Installment Amount</label>
+              <p className="text-sm text-muted-foreground">
+                BHD {car?.financialDetails?.perInstallmentAmount?.toLocaleString() || 0}
+              </p>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-2 block">Payment Amount *</label>
+              <Input
+                type="number"
+                value={paymentAmount}
+                onChange={(e) => setPaymentAmount(e.target.value)}
+                placeholder="Enter payment amount"
+                required
+                step="0.01"
+                min="0"
+                max={sale.remainingAmount}
+              />
+              {selectedInstallment?.amount && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Selected installment amount: BHD {selectedInstallment.amount}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-2 block">Payment Date *</label>
+              <Input
+                type="date"
+                value={paymentDate}
+                onChange={(e) => setPaymentDate(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="flex gap-2 justify-end pt-4 sticky bottom-0 bg-card pb-2">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={loading || !selectedInstallment || selectedInstallment.isPaid}>
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Pay Installment
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

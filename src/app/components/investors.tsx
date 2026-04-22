@@ -15,7 +15,8 @@
     Search,
     ArrowUpRight,
     ArrowDownRight,
-    Users
+    Users,
+    Wallet
   } from 'lucide-react';
 
   interface InvestorsProps {
@@ -235,12 +236,13 @@
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <DollarSign className="h-6 w-6 text-primary" />
+                    {/* <DollarSign className="h-6 w-6 text-primary" /> */}
+                    <Wallet  className="h-6 w-6 text-primary" />
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Total Invested</p>
                     <p className="text-2xl font-bold">
-                      BHD {investors.reduce((sum, inv) => sum + inv.totalInvestment, 0)}
+                      {investors.reduce((sum, inv) => sum + inv.totalInvestment, 0)}
                     </p>
                   </div>
                 </div>
@@ -256,7 +258,7 @@
                   <div>
                     <p className="text-sm text-muted-foreground">Total Profit</p>
                     <p className="text-2xl font-bold text-primary">
-                      {/* BHD {mockInvestors.reduce((sum, inv) => sum + inv.totalProfit, 0)} */}
+                      BHD {investors.reduce((sum, inv) => sum + inv.totalProfit, 0)}
                     </p>
                   </div>
                 </div>
@@ -267,12 +269,13 @@
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <DollarSign className="h-6 w-6 text-primary" />
+                    <Wallet className="h-6 w-6 text-primary" />
+                     
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Current Balance</p>
                     <p className="text-2xl font-bold">
-                      {/* BHD {mockInvestors.reduce((sum, inv) => sum + inv.currentBalance, 0)} */}
+                      {investors.reduce((sum, inv) => sum + inv.currentBalance, 0)}
                     </p>
                   </div>
                 </div>
@@ -342,29 +345,29 @@
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-muted-foreground">This Week</span>
-                        {investor.profitLastWeek > 0 ? (
+                        {investor.thisWeek > 0 ? (
                           <ArrowUpRight className="h-3 w-3 text-primary" />
                         ) : (
                           <ArrowDownRight className="h-3 w-3 text-destructive" />
                         )}
                       </div>
                       <span className="text-sm font-medium text-primary">
-                        {/* BHD {investor.profitLastWeek.toLocaleString()} */}
-                        BHD 1200
+                        BHD {investor.thisWeek.toLocaleString()}
+                        {/* BHD 1200 */}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-muted-foreground">This Month</span>
-                        {investor.profitLastMonth > 0 ? (
+                        {investor.thisMonth > 0 ? (
                           <ArrowUpRight className="h-3 w-3 text-primary" />
                         ) : (
                           <ArrowDownRight className="h-3 w-3 text-destructive" />
                         )}
                       </div>
                       <span className="text-sm font-medium text-primary">
-                        {/* BHD {investor.profitLastMonth.toLocaleString()} */}
-                        BHD 4800
+                        BHD {investor.thisMonth.toLocaleString()}
+                        {/* BHD 4800 */}
                       </span>
                     </div>
                   </div>
@@ -373,7 +376,7 @@
                   <div className="mt-3 pt-3 border-t border-border">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">ROI</span>
-                      <span className="text-lg font-bold text-primary">{investor.roi? investor.roi.toFixed(2) + '%' : 'N/A'}</span>
+                      <span className="text-lg font-bold text-primary">{investor.roi + '%' || "0"}</span>
                     </div>
                   </div>
                 </CardContent>

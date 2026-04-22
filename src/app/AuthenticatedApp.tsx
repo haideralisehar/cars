@@ -7,6 +7,8 @@ import { EditCarForm } from '@/app/components/edit-car-form';
 import { CarDetails } from '@/app/components/car-details';
 import { CashFlow } from '@/app/components/cash-flow';
 import { Investors } from '@/app/components/investors';
+import { Customers } from '@/app/components/customers';
+import { Company } from '@/app/components/company';
 import { InvestorPortal } from '@/app/components/investor-portal';
 import { UserManagement } from '@/app/components/user-management';
 import { SalesList } from '@/app/components/sales-list';
@@ -40,7 +42,10 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
-  Shield
+  Shield,
+  Building2, Briefcase,
+  User,
+  Landmark
 } from 'lucide-react';
 
 // Mock investors data
@@ -91,6 +96,7 @@ export default function AuthenticatedApp({ user, onLogout }) {
     return 'dashboard';
   };
 
+  console.log("user: ", user);
   
 
   const [currentView, setCurrentView] = useState(getInitialView());
@@ -104,12 +110,14 @@ export default function AuthenticatedApp({ user, onLogout }) {
   // Modal states
   const [sellCarModal, setSellCarModal] = useState({
     isOpen: false,
-    car: null
+    car: null,
+    onRefresh: null // Add this to store refresh callback
   });
 
   const [leaseCarModal, setLeaseCarModal] = useState({
     isOpen: false,
-    car: null
+    car: null,
+    onRefresh: null // Add this to store refresh callback
   });
   
   const [expenseModal, setExpenseModal] = useState({
@@ -125,17 +133,19 @@ export default function AuthenticatedApp({ user, onLogout }) {
     setIsLoadingCar(false);
   };
 
-  const handleSellCar = (car) => {
+  const handleSellCar = (car, fetchCars) => {
     setSellCarModal({
       isOpen: true,
-      car: car
+      car: car,
+      onRefresh: fetchCars
     });
   };
 
-  const handleLeaseCar = (car) => {
+  const handleLeaseCar = (car, fetchCars) => {
     setLeaseCarModal({
       isOpen: true,
-      car: car
+      car: car,
+      onRefresh: fetchCars
     });
   };
 
@@ -164,8 +174,8 @@ export default function AuthenticatedApp({ user, onLogout }) {
     }
   };
 
-  const sellCar = getSelectedCar(sellCarModal.car?.id);
-  const leaseCar = getSelectedCar(leaseCarModal.car?.id);
+  // const sellCar = getSelectedCar(sellCarModal.car?.id);
+  // const leaseCar = getSelectedCar(leaseCarModal.car?.id);
   const expenseCar = getSelectedCar(expenseModal.carId);
 
   // Investor-specific filtering
@@ -190,7 +200,7 @@ export default function AuthenticatedApp({ user, onLogout }) {
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <p className="text-sm font-medium text-foreground">{user.name}</p>
+                <p className="text-sm font-medium text-foreground">{user.unique_name}</p>
                 <p className="text-xs text-muted-foreground">{user.role}</p>
               </div>
               <Button variant="ghost" size="sm" onClick={onLogout} className="gap-2">
@@ -202,9 +212,6 @@ export default function AuthenticatedApp({ user, onLogout }) {
 
           <div className="pt-16">
             <InvestorPortal 
-              investorId={user.investorId} 
-              investors={mockInvestors}
-              cars={mockCars}
             />
           </div>
         </div>
@@ -217,7 +224,7 @@ export default function AuthenticatedApp({ user, onLogout }) {
     <ThemeProvider>
       <div className="min-h-screen bg-background text-foreground">
         {/* Sidebar Navigation */}
-        <div className={`fixed left-0 top-0 h-full bg-card border-r border-border p-4 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'w-20' : 'w-64'}`}>
+        <div className={`fixed left-0 top-0 h-full bg-card border-r border-border p-4 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'w-23.5' : 'w-64'}`}>
           {/* Header with Toggle */}
           <div className={`mb-8 px-2 flex items-center justify-between ${sidebarCollapsed ? 'flex-col gap-4' : ''}`}>
             {!sidebarCollapsed && (
@@ -226,6 +233,7 @@ export default function AuthenticatedApp({ user, onLogout }) {
                 <p className="text-xs text-muted-foreground font-bold tracking-widest uppercase opacity-70">Management System</p>
               </div>
             )}
+
             {sidebarCollapsed && (
               <div className="text-2xl font-bold text-primary">AL</div>
             )}
@@ -233,9 +241,9 @@ export default function AuthenticatedApp({ user, onLogout }) {
               variant="ghost"
               size="icon"
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="h-8 w-8 shrink-0"
+              className="h-8 w-8 shrink-0 "
             >
-              {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+              {sidebarCollapsed ? <ChevronRight className="h-4 w-4 " /> : <ChevronLeft className="h-4 w-4  " />}
             </Button>
           </div>
 
@@ -289,8 +297,29 @@ export default function AuthenticatedApp({ user, onLogout }) {
                 className="w-full justify-start"
                 onClick={() => setCurrentView('investors')}
               >
-                <Users className="h-4 w-4 mr-3" />
+                <Landmark className="h-4 w-4 mr-3" />
                 {!sidebarCollapsed && 'Investors'}
+              </Button>
+            )}
+
+             {(user.role === 'Admin' || user.role === 'SuperAdmin') && (
+              <Button
+                variant={currentView === 'customer' ? 'default' : 'ghost'}
+                className="w-full justify-start"
+                onClick={() => setCurrentView('customer')}
+              >
+                <Users className="h-4 w-4 mr-3" />
+                {!sidebarCollapsed && 'Customers'}
+              </Button>
+            )}
+            {(user.role === 'Admin' || user.role === 'SuperAdmin') && (
+              <Button
+                variant={currentView === 'company' ? 'default' : 'ghost'}
+                className="w-full justify-start"
+                onClick={() => setCurrentView('company')}
+              >
+                <Building2 className="h-4 w-4 mr-3" />
+                {!sidebarCollapsed && 'Company'}
               </Button>
             )}
 
@@ -364,11 +393,11 @@ export default function AuthenticatedApp({ user, onLogout }) {
                     <UserIcon className="h-5 w-5 text-primary" />
                   </div>
                   <div className="overflow-hidden flex-1">
-                    <p className="font-semibold text-sm truncate text-foreground">{user.name}</p>
+                    <p className="font-semibold text-sm truncate text-foreground">{user.unique_name}</p>
                     <p className="text-xs text-muted-foreground truncate">{user.role}</p>
                   </div>
                 </div>
-                <Button variant="ghost" onClick={onLogout} className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10">
+                <Button variant="ghost" onClick={onLogout} className="w-full justify-start text-destructive ">
                   <LogOut className="h-4 w-4 mr-3" />
                   Logout
                 </Button>
@@ -443,8 +472,10 @@ export default function AuthenticatedApp({ user, onLogout }) {
           )}
           {currentView === 'cash-flow' && <CashFlow userRole={user.role} />}
           {currentView === 'investors' && <Investors userRole={user.role} />}
+          {currentView === 'customer' && <Customers userRole={user.role}/>}
+          {currentView === 'company' && <Company userRole={user.role}/>}
           {currentView === 'sales' && <SalesList onCarClick={handleNavigateToCar} />}
-          {currentView === 'lease' && <LeaseList onCarClick={handleNavigateToCar} />}
+          {currentView === 'lease' && <LeaseList onCarClick={handleNavigateToCar} userRole={user.role} />}
           {currentView === 'documents' && <DocumentCenter userRole={user.role} />}
           {currentView === 'reports' && <Reports userRole={user.role} />}
           {currentView === 'admin' && user.role === 'SuperAdmin' && <AdminPanel userRole={user.role} />}
@@ -471,7 +502,7 @@ export default function AuthenticatedApp({ user, onLogout }) {
           )}
           {currentView === 'money-record-details' && selectedMoneyRecordId && (
             <MoneyRecordDetails 
-              recordId={selectedMoneyRecordId} 
+              record={selectedMoneyRecordId} 
               userRole={user.role} 
               onBack={() => setCurrentView('money-records')} 
             />
@@ -483,20 +514,23 @@ export default function AuthenticatedApp({ user, onLogout }) {
           <SellCarModal
             carId={sellCarModal.car.id}
             isOpen={sellCarModal.isOpen}
-            onClose={() => setSellCarModal({ isOpen: false, car: null })}
+            onClose={() => setSellCarModal({ isOpen: false, car: null, onRefresh: null })}
             car={sellCarModal.car}
             userRole={user.role}
-          />
+            onRefresh={sellCarModal.onRefresh ? sellCarModal.onRefresh : undefined}
+  />
         )}
         {leaseCarModal.car && (
           <LeaseCarModal
            carId={leaseCarModal.car.id}
             isOpen={leaseCarModal.isOpen}
-            onClose={() => setLeaseCarModal({ isOpen: false, car: null })}
+            onClose={() => setLeaseCarModal({ isOpen: false, car: null, onRefresh: null })}
             car={leaseCarModal.car}
             userRole={user.role}
+            onRefresh={leaseCarModal.onRefresh ? leaseCarModal.onRefresh : undefined}
           />
         )}
+        
         {expenseCar && (
           <AddExpenseModal
             isOpen={expenseModal.isOpen}

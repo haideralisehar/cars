@@ -23,6 +23,7 @@ useEffect(() => {
     name: investor?.investorName || '',
     contactNumber: investor?.contactNumber || '',
     cprNumber: investor?.cprNumber || '',
+    email: investor?.email || '',
     notes: '',
     cprDocumentPath: investor?.cprDocumentPath || ''
   });
@@ -47,6 +48,7 @@ useEffect(() => {
         name: investor.investorName || '',
         contactNumber: investor.contactNumber || '',
         cprNumber: investor.cprNumber || '',
+        email: investor?.email || '',
         notes: investor.notes || '',
         cprDocumentPath: investor.cprDocumentPath || ''
       });
@@ -70,6 +72,7 @@ useEffect(() => {
         name: '',
         contactNumber: '',
         cprNumber: '',
+        email: '',
         notes: '',
         cprDocumentPath: ''
       });
@@ -308,7 +311,8 @@ const handleSave = async () => {
   if (
     !investorData.name.trim() ||
     !investorData.contactNumber.trim() ||
-    !investorData.cprNumber.trim()
+    !investorData.cprNumber.trim() ||
+    !investorData.email.trim()
   ) {
     alert("Please fill all required investor fields");
     return;
@@ -335,7 +339,7 @@ const handleSave = async () => {
     
     const payload = {
       investorName: investorData.name,
-      email: "",
+      email: investorData.email,
       contactNumber: investorData.contactNumber,
       cprNumber: investorData.cprNumber,
       notes: investorData.notes,
@@ -472,6 +476,17 @@ const totalInvestment = investments.reduce((sum, inv) => sum + (parseFloat(inv.a
                     className="bg-input-background"
                   />
                 </div>
+              </div>
+              <div>
+                <Label htmlFor="notes">Email *</Label>
+                <Input
+                  id="notes"
+                  type='email'
+                  placeholder="Email Address"
+                  value={investorData.email}
+                  onChange={(e) => setInvestorData({ ...investorData, email: e.target.value })}
+                  className="bg-input-background"
+                />
               </div>
 
               <div>

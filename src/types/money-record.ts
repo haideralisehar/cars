@@ -10,43 +10,36 @@ export type MoneyRecordCategory =
 
 export type MoneyRecordStatus = 'Pending' | 'Paid' | 'Received';
 
+// money-record.ts
 export interface MoneyRecord {
   id: string;
   title: string;
-  category: MoneyRecordCategory;
-  otherCategory?: string;
-  description?: string;
-  linkedToType: 'None' | 'Car' | 'Client' | 'Investor';
-  linkedToId?: string;
-  linkedToName?: string;
-  
-  // Payable Section
+  category: string;
+  description: string;
   isPayable: boolean;
-  payableTo?: string;
-  payableAmount?: number;
-  payableDate?: string;
-  payableStatus: 'Pending' | 'Paid';
-  receiptUrl?: string;
-  
-  // Receivable Section
   isReceivable: boolean;
-  receivableFrom?: string;
-  receivableAmount?: number;
-  receivableDueDate?: string;
-  receivableStatus: 'Pending' | 'Received';
-  
+  payableAmount: number | null;
+  payableStatus: string;
+  payableDate: string | null;
+  payableTo: string | null;
+  receivableAmount: number | null;
+  receivableStatus: string;
+  dueDate: string | null;
+  receivableFrom: string | null;
+  linkedToType: 'Car' | 'Customer' | 'Investor' | 'None';
+  linkedToName?: string | null; // Allow null
+  linkedToId?: string | null; // Allow null
+  receiptPath: string | null;
+  activityLogs?: ActivityLogEntry[];
   createdAt: string;
-  createdBy: string;
-  updatedAt?: string;
-  updatedBy?: string;
-  activityLog: ActivityLogEntry[];
+  updatedAt: string;
 }
 
 export interface ActivityLogEntry {
   id: string;
   action: string;
-  timestamp: string;
-  user: string;
+  performedBy: string;
+  createdAt: string;
 }
 
 export const mockMoneyRecords: MoneyRecord[] = [
