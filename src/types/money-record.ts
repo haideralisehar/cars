@@ -26,7 +26,7 @@ export interface MoneyRecord {
   receivableStatus: string;
   dueDate: string | null;
   receivableFrom: string | null;
-  linkedToType: 'Car' | 'Customer' | 'Investor' | 'None';
+  linkedToType: 'Car' | 'Customer' | 'Investor' | 'Company' | 'None';
   linkedToName?: string | null; // Allow null
   linkedToId?: string | null; // Allow null
   receiptPath: string | null;

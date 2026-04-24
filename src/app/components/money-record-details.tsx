@@ -210,6 +210,13 @@ export function MoneyRecordDetails({ record, onBack, userRole }: MoneyRecordDeta
                       <p className="text-muted-foreground italic">None</p>
                     ) }
 
+                    {record.linkedToType == 'Company' && (
+                      <>
+                        <p className="font-bold text-lg text-foreground">{currentRecord?.record?.linkType}</p>
+                        <Badge variant="outline" className="text-[10px]">{record.linkedToType}</Badge>
+                      </>
+                    ) }
+
                     {record.linkedToType == 'Investor' && (
                       <>
                         <p className="font-bold text-lg text-foreground">{currentRecord?.record?.investor?.investorName}</p>

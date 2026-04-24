@@ -1153,6 +1153,14 @@ interface Car {
   vin: string;
   registrationNumber?: string;
 }
+// Add this Company interface after the Investor interface
+interface Company {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  
+}
 
 // Customer interface
 interface Customer {
@@ -1194,6 +1202,155 @@ interface CreateMoneyRecordProps {
   userRole: string;
   initialTab?: string;
 }
+
+// Add this Company interface after the Investor interface
+interface Company {
+  id: string;
+  name: string;
+  registrationNumber: string;
+  contactNumber: string;
+  email: string;
+  status: string;
+}
+
+// Add this SearchableCompanySelect component after SearchableInvestorSelect
+interface SearchableCompanySelectProps {
+  value: string;
+  onChange: (value: string) => void;
+  companies: Company[];
+  loading: boolean;
+  onOpen?: () => void;
+}
+
+const SearchableCompanySelect = ({ value, onChange, companies, loading, onOpen }: SearchableCompanySelectProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const handleOpen = () => {
+    setIsOpen(true);
+    if (onOpen) onOpen();
+  };
+
+  const handleClose = () => {
+    setIsOpen(false);
+    setSearchTerm('');
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) &&
+          buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
+        handleClose();
+      }
+    };
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen]);
+
+  const filteredCompanies = companies.filter((company: Company) => 
+    company.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    company.registrationNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    company.contactNumber?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const selectedCompany = companies.find((c: Company) => c.id === value);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={handleOpen}
+        className="flex h-11 w-full items-center justify-between rounded-md border border-border bg-secondary/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {selectedCompany ? (
+          <span className="flex-1 text-left font-medium">
+            {selectedCompany.name} - Phone: {selectedCompany.contactNumber} - Email: {selectedCompany.email}
+          </span>
+        ) : (
+          <span className="flex-1 text-left text-muted-foreground">
+            Select company profile
+          </span>
+        )}
+        <ChevronDown className="h-4 w-4 opacity-50" />
+      </button>
+
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-1 rounded-md border border-border bg-card text-popover-foreground shadow-md">
+          <div className="flex items-center border-b border-border px-3">
+            <Search className="h-4 w-4 shrink-0 opacity-50" />
+            <input
+              autoComplete="off"
+              type="text"
+              placeholder="Search by name or registration number..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex h-10 w-full bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+              autoFocus
+            />
+            {searchTerm && (
+              <button onClick={() => setSearchTerm('')} className="opacity-50 hover:opacity-100">
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+
+          <ScrollArea className="max-h-[300px] overflow-y-auto">
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                <span className="ml-2 text-sm text-muted-foreground">Loading companies...</span>
+              </div>
+            ) : filteredCompanies.length > 0 ? (
+              filteredCompanies.map((company: Company) => (
+                <button
+                  key={company.id}
+                  type="button"
+                  onClick={() => {
+                    onChange(company.id);
+                    handleClose();
+                  }}
+                  className={`w-full text-left px-3 py-2 text-sm transition-colors duration-150 ${
+                    value === company.id 
+                      ? 'bg-primary/10 text-primary' 
+                      : 'hover:bg-secondary'
+                  }`}
+                >
+                  <div className="flex flex-row items-center gap-2">
+                    <span className="font-medium">{company.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      Phone: {company.contactNumber} - email: {company.email}
+                    </span>
+                  </div>
+                </button>
+              ))
+            ) : (
+              <div className="px-3 py-8 text-center text-sm text-muted-foreground">
+                No companies available
+              </div>
+            )}
+          </ScrollArea>
+        </div>
+      )}
+    </div>
+  );
+};
 
 // Searchable Customer Select Component
 interface SearchableCustomerSelectProps {
@@ -1509,7 +1666,7 @@ export function CreateMoneyRecord({ onBack, onSave = () => {}, userRole, initial
     category: 'Expense' as MoneyRecordCategory,
     otherCategory: '',
     description: '',
-    linkedToType: 'None' as 'None' | 'Car' | 'Client' | 'Investor',
+    linkedToType: 'None' as 'None' | 'Car' | 'Client' | 'Investor' | 'Company',
     linkedToId: '',
     
     // Payable
@@ -1590,6 +1747,50 @@ export function CreateMoneyRecord({ onBack, onSave = () => {}, userRole, initial
       setCarsLoading(false);
     }
   }, [cars.length]);
+
+  // Add after investor states
+const [companies, setCompanies] = useState<Company[]>([]);
+const [companiesLoading, setCompaniesLoading] = useState(false);
+
+// Add fetchCompanies function after fetchInvestors
+const fetchCompanies = useCallback(async () => {
+  if (companiesLoading || companies.length > 0) return;
+  
+  setCompaniesLoading(true);
+  try {
+    const response = await fetch('https://carsappapis20260306224811-h5abbce0g9fjajhz.canadacentral-01.azurewebsites.net/api/company');
+    const data = await response.json();
+    
+    let companiesData: any[] = [];
+    
+    if (Array.isArray(data)) {
+      companiesData = data;
+    } else if (data.data && Array.isArray(data.data)) {
+      companiesData = data.data;
+    } else if (data.companies && Array.isArray(data.companies)) {
+      companiesData = data.companies;
+    }
+    
+    const formattedCompanies = companiesData
+      .filter((comp: any) => comp != null)
+      .map((comp: any) => ({
+        id: comp.id,
+        name: comp.name || 'Unknown',
+        registrationNumber: comp.registrationNumber || 'N/A',
+        contactNumber: comp.phone || comp.contactNumber || 'N/A',
+        email: comp.email || '@gmail.com',
+        status: comp.status || 'Active',
+      }));
+    
+    setCompanies(formattedCompanies);
+    console.log('Fetched companies:', formattedCompanies);
+  } catch (error) {
+    console.error('Error fetching companies:', error);
+    setCompanies([]);
+  } finally {
+    setCompaniesLoading(false);
+  }
+}, [companies.length, companiesLoading]);
 
   // Function to fetch customers from API
   const fetchCustomers = useCallback(async () => {
@@ -1860,6 +2061,11 @@ export function CreateMoneyRecord({ onBack, onSave = () => {}, userRole, initial
       return;
     }
 
+    if(!formData.isPayable && !formData.isReceivable){
+      alert('Please select at least one of Payable or Receivable Record.');
+      return;
+    }
+
     if (formData.isPayable || formData.isReceivable) {
       if (formData.isPayable) {
         if (!formData.payableAmount || isNaN(Number(formData.payableAmount)) || Number(formData.payableAmount) <= 0) {
@@ -1905,6 +2111,7 @@ export function CreateMoneyRecord({ onBack, onSave = () => {}, userRole, initial
         carId: formData.linkedToType === 'Car' ? formData.linkedToId : null,
         customerId: formData.linkedToType === 'Client' ? formData.linkedToId : null,
         investorId: formData.linkedToType === 'Investor' ? formData.linkedToId : null,
+        companyId: formData.linkedToType === 'Company' ? formData.linkedToId : null, 
 
         // Payable
         payableAmount: formData.isPayable ? Number(formData.payableAmount) : null,
@@ -1922,7 +2129,7 @@ export function CreateMoneyRecord({ onBack, onSave = () => {}, userRole, initial
       };
 
       console.log("Payload:", payload);
-      console.log(formData.isPayable, formData.isReceivable);
+      // console.log(formData.isPayable, formData.isReceivable);
       
       const response = await createMoneyRecord(payload);
 
@@ -2074,7 +2281,7 @@ export function CreateMoneyRecord({ onBack, onSave = () => {}, userRole, initial
             <div className="space-y-3">
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Link Record To (Mandatory Linking Logic)</Label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                {(['None', 'Car', 'Client', 'Investor'] as const).map((type) => (
+                {(['None', 'Car', 'Client', 'Investor', 'Company'] as const).map((type) => (
                   <Button
                     key={type}
                     type="button"
@@ -2215,6 +2422,16 @@ export function CreateMoneyRecord({ onBack, onSave = () => {}, userRole, initial
                     investors={investors}
                     loading={investorsLoading}
                     onOpen={fetchInvestors}
+                  />
+                )}
+
+                  {formData.linkedToType === 'Company' && (
+                  <SearchableCompanySelect
+                    value={formData.linkedToId}
+                    onChange={(value: string) => setFormData({...formData, linkedToId: value})}
+                    companies={companies}
+                    loading={companiesLoading}
+                    onOpen={fetchCompanies}
                   />
                 )}
               </div>

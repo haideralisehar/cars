@@ -83,7 +83,7 @@ export function MoneyRecordsList({ onAddRecord, onViewDetails, userRole, initial
 
   const transformApiRecordToMoneyRecord = (apiRecord: any): MoneyRecord => {
     // Safely extract linked entity information
-    let linkedToType: 'Car' | 'Customer' | 'Investor' | 'None' = 'None';
+    let linkedToType: 'Car' | 'Customer' | 'Investor' | 'Company' | 'None' = 'None';
     let linkedToName: string | null = null;
     let linkedToId: string | null = null;
 
@@ -100,6 +100,10 @@ export function MoneyRecordsList({ onAddRecord, onViewDetails, userRole, initial
       linkedToType = 'Investor';
       linkedToName = safeExtractString(apiRecord.investor);
       linkedToId = safeExtractId(apiRecord.investor);
+    } else if (apiRecord.company) {
+      linkedToType = 'Company';
+      linkedToName = safeExtractString(apiRecord.company);
+      linkedToId = safeExtractId(apiRecord.company);
     } else if (apiRecord.linkType) {
       linkedToType = mapLinkType(apiRecord.linkType);
     }
@@ -128,7 +132,7 @@ export function MoneyRecordsList({ onAddRecord, onViewDetails, userRole, initial
     };
   };
 
-  const mapLinkType = (linkType: string): 'Car' | 'Customer' | 'Investor' | 'None' => {
+  const mapLinkType = (linkType: string): 'Car' | 'Customer' | 'Investor' | 'Company' | 'None' => {
     switch (linkType?.toLowerCase()) {
       case 'car':
         return 'Car';
@@ -136,6 +140,8 @@ export function MoneyRecordsList({ onAddRecord, onViewDetails, userRole, initial
         return 'Customer';
       case 'investor':
         return 'Investor';
+      case 'company':
+        return 'Company';
       default:
         return 'None';
     }
@@ -302,6 +308,12 @@ export function MoneyRecordsList({ onAddRecord, onViewDetails, userRole, initial
                            {record.linkedToType == "None" && (
                             <div>
                              <span className="text-muted-foreground text-xs font-medium italic opacity-50">None</span>
+                            </div>
+                          )}
+
+                          {record.linkedToType == "Company" && (
+                            <div>
+                             <span className="text-xs font-bold text-foreground">{String(record.linkedToType)}</span>
                             </div>
                           )}
                           

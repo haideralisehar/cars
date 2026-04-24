@@ -46,6 +46,8 @@ export function CarDetails({
       setNewDocName('');
     }, 1000);
   };
+
+  console.log("Current documents state:", car);
   
   const handleDocumentRemove = (docType) => {
     setDocuments(prev => {
