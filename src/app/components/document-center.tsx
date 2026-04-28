@@ -320,6 +320,7 @@ import {
   Eye 
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { createInvoice } from "@/app/api/DocumentCenter/Invoice";
 
 interface DocumentCenterProps {
   userRole: 'Admin' | 'Super Admin' | 'User' | 'Operations' | 'Driver' | 'Investor';
@@ -584,6 +585,7 @@ export function DocumentCenter({ userRole }: DocumentCenterProps) {
   const [vatEnabled, setVatEnabled] = useState(true);
   const [vatPercentage, setVatPercentage] = useState(15);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const addLineItem = () => {
     setLineItems([
@@ -626,13 +628,58 @@ export function DocumentCenter({ userRole }: DocumentCenterProps) {
     
     return true;
   }, [recipient, lineItems]);
-
-  const handlePreview = () => {
+  const handlePreviews = async () => {
     if (!isFormValid) {
       toast.error('Please fill in all required fields before previewing');
       return;
     }
-    setIsPreviewOpen(!isPreviewOpen);
+     setIsPreviewOpen(!isPreviewOpen);
+
+  }
+
+  const handlePreview = async () => {
+    if (!isFormValid) {
+      toast.error('Please fill in all required fields before previewing');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      const payload = {
+        documentType: docType,
+        recipientName: recipient,
+        applyVat: vatEnabled,
+        vatPercentage: vatEnabled ? vatPercentage : 0,
+        items: lineItems
+          .filter(item => item.description.trim() !== '' && item.amount > 0)
+          .map(item => ({
+            description: item.description,
+            amount: item.amount
+          }))
+      };
+
+      console.log('Sending payload to API:', payload);
+
+      const response = await createInvoice(payload);
+
+      console.log('API Response:', response);
+
+      if(response.status){
+         setIsPreviewOpen(!isPreviewOpen);
+
+      }
+
+      
+        
+       
+      
+    } catch (error: any) {
+      console.error('Error creating invoice:', error);
+      toast.error(error?.message || 'An error occurred while creating the invoice');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -644,16 +691,24 @@ export function DocumentCenter({ userRole }: DocumentCenterProps) {
             <p className="text-gray-600 mt-1">Create and manage professional documents</p>
           </div>
           <div className="flex gap-2">
-            <Button 
-              style={{backgroundColor:"white", color:"black"}} 
-              variant="outline" 
-              onClick={handlePreview}
-              disabled={!isFormValid}
-              title={!isFormValid ? "Please fill in recipient name and at least one line item with description and amount" : ""}
-            >
-              <Eye className="h-4 w-4 mr-2" />
-              {isPreviewOpen ? 'Edit Document' : 'Preview'}
-            </Button>
+            {loading ? 
+              <Button disabled>
+                <div className="w-4 h-4 border-2 border-gray-600 border-t-transparent rounded-full animate-spin mr-2"></div>
+                Creating...
+              </Button>
+              :
+              <Button 
+                style={{backgroundColor:"white", color:"black"}} 
+                variant="outline" 
+                onClick={isPreviewOpen? handlePreviews : handlePreview}
+                disabled={!isFormValid}
+                title={!isFormValid ? "Please fill in recipient name and at least one line item with description and amount" : ""}
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                {isPreviewOpen ? 'Edit Document' : 'Preview & Create'}
+              </Button>
+            }
+            
             {isPreviewOpen && (
               <PDFDownloadLink
                 document={
@@ -670,13 +725,13 @@ export function DocumentCenter({ userRole }: DocumentCenterProps) {
                 }
                 fileName={`${docType}_${new Date().toISOString().split('T')[0]}.pdf`}
               >
-                {({ loading, error }) => (
+                {({ loading: pdfLoading, error }) => (
                   <Button 
                     className="bg-blue-600 text-white hover:bg-blue-700"
-                    disabled={loading}
+                    disabled={pdfLoading}
                   >
                     <Download className="h-4 w-4 mr-2" />
-                    {loading ? 'Generating...' : 'Download PDF'}
+                    {pdfLoading ? 'Generating...' : 'Download PDF'}
                   </Button>
                 )}
               </PDFDownloadLink>

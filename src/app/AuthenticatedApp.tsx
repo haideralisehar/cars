@@ -92,6 +92,9 @@ const mockInvestors = [
 export default function AuthenticatedApp({ user, onLogout }) {
   // Set initial view based on user role
   const getInitialView = () => {
+    if(!user){
+      window.location.reload();
+    }
     if (user.role === 'Investor') return 'investor-portal';
     return 'dashboard';
   };
@@ -101,7 +104,7 @@ export default function AuthenticatedApp({ user, onLogout }) {
 
   const [currentView, setCurrentView] = useState(getInitialView());
   const [selectedCar, setSelectedCar] = useState(null);
-  const [selectedCarId, setSelectedCarId] = useState(null);
+  const [selectedCarId, setSelectedCarId] = useState("");
   const [selectedMoneyRecordId, setSelectedMoneyRecordId] = useState(null);
   const [moneyRecordInitialTab, setMoneyRecordInitialTab] = useState('all');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -124,14 +127,22 @@ export default function AuthenticatedApp({ user, onLogout }) {
     isOpen: false,
     carId: null,
   });
+  
+
 
   const handleNavigateToCar = (car) => {
     setIsLoadingCar(true);
     setSelectedCar(car);
-    setSelectedCarId(car.id);
+    setSelectedCarId(car);
     setCurrentView('car-details');
     setIsLoadingCar(false);
   };
+
+
+
+
+
+  
 
   const handleSellCar = (car, fetchCars) => {
     setSellCarModal({
@@ -158,10 +169,10 @@ export default function AuthenticatedApp({ user, onLogout }) {
     return mockCars.find((car) => car.id === carId);
   };
 
-  const handleCarDetailsEdit = () => {
-  // The selectedCar should already be set when viewing details
+  const handleCarDetailsEdit = (carData) => {
+  // Set the selected car to the current carData from CarDetails
+  setSelectedCar(carData);
   setCurrentView('edit-car');
-  // No need to set selectedCar again as it should already be set
 };
 
   const handleRefresh = async () => {

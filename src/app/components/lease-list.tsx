@@ -340,7 +340,7 @@ function RentPaymentModal({
   lease: Lease | null; 
   isOpen: boolean; 
   onClose: () => void; 
-  onConfirm: (leaseId: string, amount: number) => void;
+  onConfirm: (leaseId: string, amount: string) => void;
   onPaymentSuccess?: () => Promise<void>; // Optional callback for refreshing data;
 }) {
   const [paymentAmount, setPaymentAmount] = useState<number>(0);
@@ -373,7 +373,7 @@ function RentPaymentModal({
 
         const payload = {
         leaseId: lease.id,
-        amount: paymentAmount,
+        amount: lease.installmentValue || 0,
         paymentMethod: paymentMethod,
         notes: notes,
 
@@ -383,8 +383,8 @@ function RentPaymentModal({
         console.log("Car Data:", payload);
         console.log("Api Response: ", response)
          // Call onConfirm to update local state
-        onConfirm(lease.id, paymentAmount);
-      
+        onConfirm(lease.id, (lease.installmentValue || 0).toString());
+
         // Call onPaymentSuccess to refresh the entire leases list
         if (onPaymentSuccess) {
           await onPaymentSuccess();
@@ -424,8 +424,9 @@ function RentPaymentModal({
           <div>
             <label className="block text-sm font-medium mb-2">Payment Amount (BHD)</label>
             <Input
+            disabled
               type="number"
-              value={paymentAmount}
+              value={lease.installmentValue}
               onChange={(e) => setPaymentAmount(Number(e.target.value))}
               className="w-full"
               min={0}
@@ -599,7 +600,7 @@ export function LeaseList({ onCarClick, userRole }: LeaseListProps) {
         // Transform API data to match your Lease type
         const transformedLeases: Lease[] = data.map((item: any) => ({
           id: item.leaseId,
-          carId: item.carId || item.leaseId,
+          carId: item.carID,
           carName: item.carName,
           lesseeName: item.lesseeName,
           lesseeCpr: item.cprNumber,
@@ -609,6 +610,7 @@ export function LeaseList({ onCarClick, userRole }: LeaseListProps) {
           duration: item.duration || 0,
           nextDueDate: item.nextDueDate ? item.nextDueDate.split('T')[0] : '',
           status: item.status,
+          installmentValue: item.installmentPerDay,
         }));
         
         setLeases(transformedLeases);
@@ -674,6 +676,7 @@ export function LeaseList({ onCarClick, userRole }: LeaseListProps) {
 
   const handleViewDetails = (carId: string) => {
     onCarClick(carId);
+   
   };
 
   const filteredLeases = leases.filter((lease) =>
@@ -911,7 +914,7 @@ export function LeaseList({ onCarClick, userRole }: LeaseListProps) {
                       <td className="py-4 px-4">
                         <div>
                           <p className="font-bold text-primary">
-                            BHD {lease.rentAmount.toLocaleString()}
+                            BHD {lease.installmentValue.toLocaleString()}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             per {lease.leaseType === 'Daily' ? 'day' : 'month'}

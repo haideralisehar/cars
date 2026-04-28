@@ -2125,11 +2125,12 @@ const fetchCompanies = useCallback(async () => {
         receivableFrom: formData.isReceivable ? formData.receivableFrom : null,
 
         // Optional
-        receiptPath: formData.receiptPath || null
+        receiptPath: formData.receiptPath || null,
+        // performedBy: userRole
       };
 
       console.log("Payload:", payload);
-      // console.log(formData.isPayable, formData.isReceivable);
+      console.log(formData.isPayable, formData.isReceivable);
       
       const response = await createMoneyRecord(payload);
 

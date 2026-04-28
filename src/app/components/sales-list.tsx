@@ -1616,7 +1616,7 @@ export function SalesList({ onCarClick }: SalesListProps) {
                                 Pay Installment
                               </DropdownMenuItem>
                             )}
-                            <DropdownMenuItem>
+                            <DropdownMenuItem  onClick={() => onCarClick(sale.carId)}>
                               View Details
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -1625,7 +1625,7 @@ export function SalesList({ onCarClick }: SalesListProps) {
                       
                       <td 
                         className="py-4 px-4 cursor-pointer"
-                        // onClick={() => onCarClick(sale.carId)}
+                        onClick={() => onCarClick(sale.carId)}
                       >
                         <div>
                           <p className="font-medium">

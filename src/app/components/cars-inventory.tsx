@@ -1037,7 +1037,7 @@ export function CarsInventory({
                 >
                   {/* Image */}
                   <div
-                    onClick={() => isAdmin && onCarClick(car)}
+                    onClick={() => isAdmin && onCarClick(car.id)}
                     className="relative h-48 bg-secondary overflow-hidden"
                   >
                     <img
@@ -1063,7 +1063,7 @@ export function CarsInventory({
                   {/* Content */}
                   <CardContent
                     className="p-4"
-                    onClick={() => isAdmin && onCarClick(car)}
+                    onClick={() => isAdmin && onCarClick(car.id)}
                   >
                     <div className="space-y-3">
                       <div>

@@ -454,6 +454,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { ScrollArea } from '@/app/components/ui/scroll-area';
 import { getDash } from '@/app/api/Dashboard/dash';
 import { getAlerts } from '@/app/api/Dashboard/alertsNotifications';
+import { getReminders } from '@/app/api/Dashboard/reminder';
+import { toggleReminder } from '@/app/api/Dashboard/toggleReminder';
+import { createReminder } from '@/app/api/Dashboard/addReminder';
 import { 
   Car, 
   DollarSign, 
@@ -483,7 +486,7 @@ interface AlertsResponse {
   installmentAlerts: Alert[];
   insuranceAlerts: Alert[];
   leaseAlerts: Alert[];
-  registrationAlerts: Alert[];
+  insuranceExpiringSoon: Alert[];
 }
 
 interface DashboardData {
@@ -507,7 +510,7 @@ interface DashboardProps {
 
 export function Dashboard({ userRole, onNavigateToCar }: DashboardProps) {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('Monthly');
-  const [reminders, setReminders] = useState<Reminder[]>(mockReminders);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
   const [newReminder, setNewReminder] = useState({ text: '', date: '' });
   const [isAddReminderOpen, setIsAddReminderOpen] = useState(false);
   const [isSeeMoreAlertsOpen, setIsSeeMoreAlertsOpen] = useState(false);
@@ -515,6 +518,7 @@ export function Dashboard({ userRole, onNavigateToCar }: DashboardProps) {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [isDashboardLoading, setIsDashboardLoading] = useState(false);
   const [isAlertsLoading, setIsAlertsLoading] = useState(false);
+  const [isRemindersLoading, setIsRemindersLoading] = useState(false);
 
   const getData = async (period: TimePeriod) => {
     setTimePeriod(period);
@@ -529,6 +533,47 @@ export function Dashboard({ userRole, onNavigateToCar }: DashboardProps) {
       setDashboardData(null);
     } finally {
       setIsDashboardLoading(false);
+    }
+  };
+
+  const fetchReminders = async () => {
+    setIsRemindersLoading(true);
+    try {
+      const remindersData = await getReminders();
+      const remindersOnly = [...remindersData].reverse();
+      setReminders(remindersOnly);
+      console.log('Reminders Data:', remindersData);
+    } catch (error) {
+      console.error('Error fetching reminders:', error);
+      setReminders([]);
+    } finally {
+      setIsRemindersLoading(false);
+    }
+  };
+
+  
+
+  const toggleReminderStatus = async (id: string) => {
+    try {
+      setIsRemindersLoading(true);
+      const updatedReminder = await toggleReminder(id);
+
+      if(updatedReminder.success){
+        setIsRemindersLoading(false);
+        alert(updatedReminder.message);
+        fetchReminders();
+      }
+
+      if(!updatedReminder.success){
+        setIsRemindersLoading(false);
+        alert(updatedReminder.message);
+
+
+      }
+      
+    } catch (error) {
+      console.error('Error toggling reminder status:', error);
+       setIsRemindersLoading(false);
     }
   };
 
@@ -553,12 +598,12 @@ export function Dashboard({ userRole, onNavigateToCar }: DashboardProps) {
       }
       
       // Add registration alerts with type
-      if (alertsData.registrationAlerts && Array.isArray(alertsData.registrationAlerts)) {
-        alertsData.registrationAlerts.forEach((alert: Alert) => {
+      if (alertsData.insuranceExpiringSoon && Array.isArray(alertsData.insuranceExpiringSoon)) {
+        alertsData.insuranceExpiringSoon.forEach((alert: Alert) => {
           allAlerts.push({
             ...alert,
-            alert: 'Registration expiring soon',
-            type: 'Registration'
+            alert: 'Insurance expiring soon',
+            type: 'Insurance'
           });
         });
       }
@@ -599,10 +644,11 @@ export function Dashboard({ userRole, onNavigateToCar }: DashboardProps) {
   useEffect(() => {
     getData('Monthly');
     fetchAlerts();
+    fetchReminders();
   }, []);
 
   const handleAddReminder = () => {
-    if (newReminder.text && newReminder.date) {
+    if (newReminder.text && newReminder.reminderDate) {
       const reminder: Reminder = {
         id: `rem-${Date.now()}`,
         text: newReminder.text,
@@ -617,6 +663,7 @@ export function Dashboard({ userRole, onNavigateToCar }: DashboardProps) {
   };
 
   const handleToggleReminder = (id: string) => {
+
     setReminders(reminders.map(r => r.id === id ? { ...r, done: !r.done } : r));
   };
 
@@ -636,6 +683,39 @@ export function Dashboard({ userRole, onNavigateToCar }: DashboardProps) {
     if (alert.alert.includes('Lease')) return 'Lease';
     return 'Alert';
   };
+
+  const handleAddReminders = async () => {
+    const isValid = newReminder.text.trim() !== '' && newReminder.date.trim() !== '';
+    if (!isValid) {
+      alert('Please enter both reminder text and date.');
+      return;
+    }
+    
+      try {
+        setIsRemindersLoading(true);
+
+        const payload = {
+          text: newReminder.text,
+          reminderDate: newReminder.date
+        };  
+
+        const result = await createReminder(payload);
+
+        console.log('Create Reminder Result:', result);
+
+        if (result.success) {
+          fetchReminders();
+          setNewReminder({ text: '', date: '' });
+          alert('Reminder added successfully!');
+          setIsAddReminderOpen(false);
+        }
+      } catch (error) {
+        console.error('Error adding reminder:', error);
+      } finally {
+        setIsRemindersLoading(false);
+      }
+    
+  };  
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -701,13 +781,15 @@ export function Dashboard({ userRole, onNavigateToCar }: DashboardProps) {
               </CardContent>
             </Card>
 
+            
+
             <Card className="bg-card border-border">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">Active Leases</CardTitle>
                 <Car className="h-4 w-4 text-primary" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-foreground">{dashboardData.totalCompanies}</div>
+                <div className="text-2xl font-bold text-foreground">{dashboardData?.activeLeases}</div>
               </CardContent>
             </Card>
 
@@ -718,7 +800,7 @@ export function Dashboard({ userRole, onNavigateToCar }: DashboardProps) {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-foreground">
-                  ${dashboardData.leaseIncome.toLocaleString()}
+                  BHD {dashboardData.leaseRentPending.toLocaleString()}
                 </div>
               </CardContent>
             </Card>
@@ -732,11 +814,12 @@ export function Dashboard({ userRole, onNavigateToCar }: DashboardProps) {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-foreground">
-                      ${(dashboardData.pendingInstallments * 1000).toLocaleString()}
+                      BHD {dashboardData.salepaymentPending.toLocaleString()}
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">Sales Installments</p>
                   </CardContent>
                 </Card>
+
 
                 <Card className="bg-card border-border">
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -745,8 +828,20 @@ export function Dashboard({ userRole, onNavigateToCar }: DashboardProps) {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-foreground">
-                      ${dashboardData.totalPurchase.toLocaleString()}
+                      BHD {dashboardData.totalExpenses.toLocaleString()}
                     </div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-card border-border">
+                  <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <CardTitle className="text-sm font-medium">Payment Pending</CardTitle>
+                    <DollarSign className="h-4 w-4 text-primary" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-foreground">
+                      BHD {dashboardData.purchasepaymentPending.toLocaleString()}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">Purchase Installments</p>
                   </CardContent>
                 </Card>
 
@@ -757,7 +852,7 @@ export function Dashboard({ userRole, onNavigateToCar }: DashboardProps) {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-foreground">
-                      ${dashboardData.totalProfit.toLocaleString()}
+                      BHD {dashboardData.netProfit.toLocaleString()}
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">VAT-adjusted</p>
                   </CardContent>
@@ -770,7 +865,7 @@ export function Dashboard({ userRole, onNavigateToCar }: DashboardProps) {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-foreground">
-                      ${(dashboardData.totalSales * 0.1).toLocaleString()}
+                      BHD {dashboardData.autoLoungeCommission.toLocaleString()}
                     </div>
                   </CardContent>
                 </Card>
@@ -940,8 +1035,13 @@ export function Dashboard({ userRole, onNavigateToCar }: DashboardProps) {
                           className="bg-input-background"
                         />
                       </div>
-                      <Button onClick={handleAddReminder} className="w-full">
-                        Add Reminder
+                      <Button onClick={handleAddReminders} className="w-full">
+                        {isRemindersLoading ? (
+                          <Loader2 className="h-4 w-4 animate-spin text-white" />
+                        ) : (
+                          'Add Reminder'
+                        )}
+                        
                       </Button>
                     </div>
                   </DialogContent>
@@ -950,33 +1050,42 @@ export function Dashboard({ userRole, onNavigateToCar }: DashboardProps) {
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-[300px] pr-4">
-                <div className="space-y-2">
-                  {reminders.map((reminder) => (
-                    <div
-                      key={reminder.id}
-                      className={`p-3 bg-secondary rounded-lg border border-border ${
-                        reminder.done ? 'opacity-50' : ''
+                {isRemindersLoading ? (
+                  <div className="flex items-center justify-center h-64">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : reminders.length > 0 ? (
+                  <div className="space-y-2">
+                    {reminders.map((reminder) => (
+                      <div
+                        key={reminder.id}
+                        className={`p-3 bg-secondary rounded-lg border border-border ${
+                        reminder.isCompleted ? 'opacity-50' : ''
                       }`}
                     >
                       <div className="flex items-start gap-3">
                         <input
                           type="checkbox"
-                          checked={reminder.done}
-                          onChange={() => handleToggleReminder(reminder.id)}
+                          checked={reminder.isCompleted}
+                          onChange={() => toggleReminderStatus(reminder.id)}
                           className="mt-1 h-4 w-4 rounded border-border bg-input-background"
                         />
                         <div className="flex-1">
-                          <p className={`text-sm ${reminder.done ? 'line-through' : ''}`}>
+                          <p className={`text-sm ${reminder.isCompleted ? 'line-through' : ''}`}>
                             {reminder.text}
                           </p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            {new Date(reminder.date).toLocaleDateString()}
+                            {new Date(reminder.reminderDate).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
                     </div>
                   ))}
-                </div>
+                </div>) : (
+                  <div className="space-y-2">
+                   <p>No reminders found.</p>
+                  </div>
+                )}
               </ScrollArea>
             </CardContent>
           </Card>

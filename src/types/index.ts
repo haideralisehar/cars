@@ -1,3 +1,5 @@
+import { MoneyRecord } from "./money-record";
+
 export type CarStatus = 'Available' | 'Sold' | 'Leased';
 export type CarSource = 'Company Car' | 'Investor' | 'Customer';
 export type PaymentType = 'Full' | 'Installment';
@@ -17,6 +19,8 @@ export interface Car {
   status: CarStatus;
   carSource: CarSource;
   images: string[];
+  carImagePath: string;
+  moneyRecords: MoneyRecord[];
   
   // Financial details
   buyingPrice: number;
@@ -28,6 +32,7 @@ export interface Car {
   leaseEnabled: boolean;
   leaseType?: LeaseType;
   leaseAmount?: number;
+  leaseDuration?: number;
   
   // Related
   investorId?: string;
@@ -41,6 +46,11 @@ export interface Car {
     insurance?: string;
     additional?: string[];
   };
+  
+  // Document Paths
+  cprDocumentPath?: string;
+  registrationCardPath?: string;
+  insuranceDocumentPath?: string;
   
   // Dates
   insuranceExpiry?: string;
@@ -87,6 +97,8 @@ export interface Reminder {
   date: string;
   done: boolean;
   createdAt: string;
+  reminderDate: string;
+  isCompleted: boolean;
 }
 
 export interface DashboardData {
@@ -225,6 +237,7 @@ export interface Lease {
   duration: number; // days or months
   nextDueDate: string;
   status: 'Active' | 'Overdue' | 'Completed';
+  installmentValue?: number; // per day/month based on leaseType
 }
 
 // Expense Types

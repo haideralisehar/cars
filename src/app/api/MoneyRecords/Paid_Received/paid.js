@@ -1,7 +1,10 @@
+import Cookies from 'js-cookie';
+  
 const BASE_URL =
   "https://carsappapis20260306224811-h5abbce0g9fjajhz.canadacentral-01.azurewebsites.net/api";
 
 export const ChangetoPaid = async (recordId) => {
+  const token = Cookies.get('token');
   try {
     const response = await fetch(
       `${BASE_URL}/money-records/mark-as-paid/${recordId}`,
@@ -9,6 +12,7 @@ export const ChangetoPaid = async (recordId) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
       }
     );
