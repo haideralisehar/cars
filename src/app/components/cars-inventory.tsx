@@ -719,6 +719,7 @@ import {
 } from "@/app/components/ui/select";
 import { getCarInstallments } from '@/app/api/CarInventory/GetCarInstallment';
 import { payCarInstallment } from '@/app/api/CarInventory/payCarInstallments';
+import { CarImageGallery } from '@/app/components/carGallary';
 
 
 
@@ -943,6 +944,13 @@ export function CarsInventory({
     );
   }
 
+  const ImagesCar = [
+    "https://plus.unsplash.com/premium_photo-1737182592549-0c83f93e2903?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTN8fHNwb3J0cyUyMGNhcnxlbnwwfHwwfHx8MA%3D%3D",
+    "https://media.ed.edmunds-media.com/bugatti/chiron/2024/fe/2024_bugatti_chiron_f34_fe_110424_1600.jpg",
+    "https://i.insider.com/5a9eec4b5cc4104d058b45cb?width=700"
+
+  ];
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
@@ -1040,7 +1048,7 @@ export function CarsInventory({
                     onClick={() => isAdmin && onCarClick(car.id)}
                     className="relative h-48 bg-secondary overflow-hidden"
                   >
-                    <img
+                    {/* <img
                       src={car.carImagePath || '/placeholder-car.png'}
                       alt={`${car.make} ${car.model}`}
                       className={`w-full h-full object-cover transition-transform ${isAdmin ? 'group-hover:scale-105' : ''
@@ -1051,7 +1059,13 @@ export function CarsInventory({
                         target.onerror = null;
                       }}
                       loading="lazy"
-                    />
+                    /> */}
+
+                     <CarImageGallery 
+                                      // images={car.carImagePath} 
+                                      images={car.carImagePath}
+                                      alt={`${car.make} ${car.model}`}
+                                    />
 
                     <div className="absolute top-3 right-3 flex gap-2">
                       <Badge className={getStatusColor(car.status)}>

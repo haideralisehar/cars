@@ -7,6 +7,16 @@ export type LeaseType = 'Daily' | 'Monthly';
 export type UserRole = 'Admin' | 'SuperAdmin' | 'User' | 'Operations' | 'Driver' | 'Investor';
 export type AlertType = 'Insurance' | 'Registration' | 'LeaseRent' | 'Installment';
 
+export interface Sale {
+  id: string;
+  status: 'Completed' | 'Pending' | 'Cancelled';
+  createdAt: string;
+  purchaserName: string;
+  sellingPrice: number;
+  profit: number;
+  installments?: Installment[];
+}
+
 export interface Car {
   financialDetails: any;
   id: string;
@@ -38,6 +48,7 @@ export interface Car {
   investorId?: string;
   customerId?: string;
   sellerId?: string;
+  sale?: Sale;
   
   // Documents
   documents: {

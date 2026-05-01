@@ -262,12 +262,26 @@ export function InvestorPortal() {
                           <div className="flex items-start justify-between mb-3">
                             <div className="flex-1">
                               <div className="flex items-center gap-3">
-                                {car.carImagePath && (
-                                  <img 
-                                    src={car.carImagePath} 
+                                {!car?.carImagePath ? (
+                                  <div className="w-16 h-16 bg-gray-200 rounded-md flex items-center justify-center">
+                                    <img src="https://www.freeiconspng.com/thumbs/no-image-icon/no-image-icon-6.png"
+                                    
                                     alt={`${car.make} ${car.model}`}
                                     className="w-16 h-16 object-cover rounded-md"
-                                  />
+                                    
+                                    />
+                                  </div>
+                                ) : (
+                                  <img 
+                                    src={car.carImagePath[0] || "https://www.freeiconspng.com/thumbs/no-image-icon/no-image-icon-6.png"} 
+                                    alt={`${car.make} ${car.model}`}
+                                    className="w-16 h-16 object-cover rounded-md"
+
+                                    onError={(e) => {
+                                      
+                              e.currentTarget.src = "https://www.freeiconspng.com/thumbs/no-image-icon/no-image-icon-6.png";
+                            }}
+                                                />
                                 )}
                                 <div>
                                   <h3 className="font-semibold text-foreground text-lg">
@@ -297,10 +311,17 @@ export function InvestorPortal() {
                               <p className="text-muted-foreground text-xs">Color</p>
                               <p className="font-medium text-foreground">{car.color || 'N/A'}</p>
                             </div>
+                            {car.sale ? <div>
+                               <p className="text-muted-foreground text-xs">Sold Price</p>
+                              <p className="font-medium text-foreground">{formatCurrency(car?.sale?.sellingPrice)}</p>
+
+                            </div> :
+
                             <div>
-                              <p className="text-muted-foreground text-xs">Sold Price</p>
+                              <p className="text-muted-foreground text-xs">Asking Price</p>
                               <p className="font-medium text-foreground">{formatCurrency(car.askingPrice)}</p>
                             </div>
+                            }
                             <div>
                               <p className="text-muted-foreground text-xs">Company Commission</p>
                               <p className="font-medium text-foreground">{formatCurrency(car.companyCommission)}</p>

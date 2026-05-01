@@ -58,11 +58,11 @@ export function AdminPanel({ userRole }: AdminPanelProps) {
   const renderOverview = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-500">
       {[
-        { id: 'roles', title: 'Roles & Permissions', desc: 'Manage user access levels and role definitions', icon: Shield },
-        { id: 'financial', title: 'Financial Rules', desc: 'Configure VAT and commission visibility', icon: Calculator },
-        { id: 'reports', title: 'Report Access', desc: 'Control which roles can see specific reports', icon: FileText },
-        { id: 'documents', title: 'Document Rules', desc: 'Set rules for external and internal exports', icon: Eye },
-        { id: 'audit', title: 'Audit Logs', desc: 'View complete system history and changes', icon: History },
+        // { id: 'roles', title: 'Roles & Permissions', desc: 'Manage user access levels and role definitions', icon: Shield },
+        // { id: 'financial', title: 'Financial Rules', desc: 'Configure VAT and commission visibility', icon: Calculator },
+        // { id: 'reports', title: 'Report Access', desc: 'Control which roles can see specific reports', icon: FileText },
+        // { id: 'documents', title: 'Document Rules', desc: 'Set rules for external and internal exports', icon: Eye },
+        // { id: 'audit', title: 'Audit Logs', desc: 'View complete system history and changes', icon: History },
         { id: 'settings', title: 'System Settings', desc: 'Company info, theme and notification rules', icon: Settings },
       ].map((card) => (
         <Card 
@@ -259,9 +259,10 @@ export function AdminPanel({ userRole }: AdminPanelProps) {
   );
 
   const renderSettings = () => (
-    <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-500">
+    <div className="">
+      {/* max-w-4xl mx-auto space-y-6 animate-in fade-in duration-500 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="bg-card border-border">
+        {/* <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Building className="h-5 w-5 text-primary" />
@@ -282,9 +283,9 @@ export function AdminPanel({ userRole }: AdminPanelProps) {
               <Input defaultValue="+973 39150003" className="bg-secondary border-border" />
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
-        <Card className="bg-card border-border">
+        {/* <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Bell className="h-5 w-5 text-primary" />
@@ -309,7 +310,7 @@ export function AdminPanel({ userRole }: AdminPanelProps) {
               <Switch />
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         <Card className="bg-card border-border">
           <CardHeader>
@@ -338,7 +339,7 @@ export function AdminPanel({ userRole }: AdminPanelProps) {
           </CardContent>
         </Card>
         
-        <Card className="bg-card border-border">
+        {/* <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-primary" />
@@ -355,12 +356,12 @@ export function AdminPanel({ userRole }: AdminPanelProps) {
               <Switch />
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
-      <div className="flex justify-end gap-3">
+      {/* <div className="flex justify-end gap-3">
         <Button variant="outline">Reset to Defaults</Button>
         <Button className="bg-primary">Save Changes</Button>
-      </div>
+      </div> */}
     </div>
   );
 

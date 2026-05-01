@@ -372,17 +372,7 @@ export default function AuthenticatedApp({ user, onLogout }) {
               </Button>
             )}
 
-            {user.role === 'SuperAdmin' && (
-              <Button
-                variant={currentView === 'admin' ? 'default' : 'ghost'}
-                className="w-full justify-start"
-                onClick={() => setCurrentView('admin')}
-              >
-                <ShieldAlert className="h-4 w-4 mr-3" />
-                {!sidebarCollapsed && 'Admin Panel'}
-              </Button>
-            )}
-
+           
             {user.role === 'SuperAdmin' && (
               <Button
                 variant={currentView === 'user-management' ? 'default' : 'ghost'}
@@ -393,7 +383,21 @@ export default function AuthenticatedApp({ user, onLogout }) {
                 {!sidebarCollapsed && 'User Management'}
               </Button>
             )}
+
+             {user.role === 'SuperAdmin' && (
+              <Button
+                variant={currentView === 'admin' ? 'default' : 'ghost'}
+                className="w-full justify-start"
+                onClick={() => setCurrentView('admin')}
+              >
+                <ShieldAlert className="h-4 w-4 mr-3" />
+                {!sidebarCollapsed && 'Settings'}
+              </Button>
+            )}
           </div>
+
+          
+
 
           {/* User Profile at Bottom */}
           <div className="pt-4 border-t border-border mt-4">

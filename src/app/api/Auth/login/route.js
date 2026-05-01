@@ -59,7 +59,7 @@ export async function POST(req) { ///dfdfdfd
                     secure: true,
                     sameSite: "none",
                     path: "/",
-                    maxAge: 14 * 24 * 60 * 60
+                    // maxAge: 14 * 24 * 60 * 60
 
                 });
 
@@ -72,7 +72,7 @@ export async function POST(req) { ///dfdfdfd
                 secure: true,
                 sameSite: "none",
                 path: "/",
-                maxAge: 14 * 24 * 60 * 60
+                // maxAge: 2 * 24 * 60 * 60
             });
 
 

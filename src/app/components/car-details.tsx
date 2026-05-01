@@ -799,6 +799,7 @@ import { ArrowLeft, Edit, FileText, Download, Wallet, Calendar, Upload, X, Loade
 import { leaseCar } from '../api/CarInventory/leaseCar';
 import { getInventory } from '@/app/api/CarInventory/getById';
 import { Car, UserRole } from '@/types';
+import { CarImageGallery } from '@/app/components/carGallary';
 
 interface CarDetailsProps {
   car?: Car | string;  // Can be Car object or string ID
@@ -1128,6 +1129,7 @@ const generateTimelineEvents = (carData: any) => {
  
           const timelineEvents = generateTimelineEvents(carData);
 
+          // const imageUrls = carData?.carImagePath?.split(',').filter(url => url?.trim()) || [];
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -1153,13 +1155,17 @@ const generateTimelineEvents = (carData: any) => {
               {/* Image */}
               <div className="relative h-80 bg-secondary rounded-lg overflow-hidden">
                 <img
-                  src={carData?.carImagePath || '/placeholder-car.jpg'}
+                  src={carData?.carImagePath?.[0] || '/placeholder-car.jpg'}
                   alt={`${carData?.make} ${carData?.model}`}
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = '/placeholder-car.jpg';
                   }}
                 />
+                {/* <CarImageGallery 
+                  images={carData.carImagePath} 
+                  alt={`${carData.make} ${carData.model}`}
+                /> */}
               </div>
 
               {/* Info */}
@@ -1193,11 +1199,26 @@ const generateTimelineEvents = (carData: any) => {
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-border">
+                <div className="grid grid-cols-2 gap-4 pt-4">
+                  <div>
                   <p className="text-sm text-muted-foreground mb-1">Asking Price</p>
                   <p className="text-3xl font-bold text-primary">
                     BHD {carData?.financialDetails?.askingPrice?.toLocaleString()}
                   </p>
+                  </div>
+
+                  {
+                    carData?.sale && (
+                
+                   <div>
+                  <p className="text-sm text-muted-foreground mb-1">Sold Price</p>
+                  <p className="text-3xl font-bold text-primary">
+                    BHD {carData?.sale?.sellingPrice?.toLocaleString()}
+                  </p>
+                  </div>
+                    )
+}
+
                 </div>
               </div>
             </div>

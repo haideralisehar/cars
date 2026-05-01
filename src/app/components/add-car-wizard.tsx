@@ -1032,6 +1032,8 @@
 //   );
 // }
 
+
+
 import { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
@@ -1039,7 +1041,7 @@ import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { Switch } from '@/app/components/ui/switch';
-import { Building2, User, Users, ArrowLeft, ArrowRight, Check, ChevronDown, Search, X } from 'lucide-react';
+import { Building2, User, Users, ArrowLeft, ArrowRight, Check, ChevronDown, Search, X, Image as ImageIcon, Trash2, Star } from 'lucide-react';
 import { CarSource, PaymentType, LeaseType } from '@/types';
 import { addInventory } from "@/app/api/CarInventory/addcarinventory";
 import { ScrollArea } from './ui/scroll-area';
@@ -1068,8 +1070,6 @@ interface Investor {
   email: string;
   status: string;
 }
-
-
 
 const SearchableInvestorSelect = ({ value, onChange, investors, loading, onOpen }: any) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -1180,8 +1180,8 @@ const SearchableInvestorSelect = ({ value, onChange, investors, loading, onOpen 
                   }}
                  className={`w-full text-left px-3 py-2 text-sm transition-colors duration-150 ${
                     value === investor.id 
-                      ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground' // Selected state with light/dark support
-                      : 'hover:bg-gray-100 dark:hover:bg-gray-800' // Hover state for both modes
+                      ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground'
+                      : 'hover:bg-gray-100 dark:hover:bg-gray-800'
                   }`}
                 >
                   <div className="flex flex-row items-center gap-2">
@@ -1446,8 +1446,8 @@ const SearchableCustomerSelect = ({ value, onChange, customers, loading, onOpen 
                   }}
                   className={`w-full text-left px-3 py-2 text-sm transition-colors duration-150 ${
                     value === customer.id 
-                      ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground' // Selected state with light/dark support
-                      : 'hover:bg-gray-100 dark:hover:bg-gray-800' // Hover state for both modes
+                      ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground'
+                      : 'hover:bg-gray-100 dark:hover:bg-gray-800'
                   }`}
                 >
                   <div className="flex flex-col gap-1">
@@ -1491,13 +1491,16 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
   const [carSource, setCarSource] = useState<CarSource | null>(null);
   const [addingCar, setaddingCar] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
-  const [carPhoto, setCarPhoto] = useState(null);
+  const [carPhotos, setCarPhotos] = useState<any[]>([]); // Changed to array
   const [companies, setCompanies] = useState<any[]>([]);
   const [companiesLoading, setCompaniesLoading] = useState(false);
+  
+  // Main image states
+  const [mainImageIndex, setMainImageIndex] = useState<number>(0); // Track which image is main
+  const [mainImage, setMainImage] = useState<string>(''); // Store main image URL
 
   const [vehicleInfo, setVehicleInfo] = useState({
-    carimg: '',
-    make: '',
+   make: '',
     model: '',
     year: '',
     vin: '',
@@ -1556,6 +1559,74 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
     },
   ];
 
+ const handleMultipleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const files = Array.from(e.target.files || []);
+  if (files.length === 0) return;
+
+  try {
+    setImageUploading(true);
+    const uploadPromises = files.map(file => uploadImage(file));
+    const uploadedUrls = await Promise.all(uploadPromises);
+    
+    setCarPhotos(prev => {
+      const newPhotos = [...prev, ...uploadedUrls];
+      // If this is the first image being added and no main image is set, set it as main
+      if (prev.length === 0 && !mainImage) {
+        setMainImageIndex(0);
+        setMainImage(uploadedUrls[0]);
+      }
+      return newPhotos;
+    });
+    
+    // Remove the comma-separated conversion completely
+    // No need to update vehicleInfo.carimg anymore
+  } catch (error) {
+    console.error("Upload failed:", error);
+    alert("Failed to upload one or more images");
+  } finally {
+    setImageUploading(false);
+  }
+};
+  const setAsMainImage = (index: number) => {
+    setMainImageIndex(index);
+    setMainImage(carPhotos[index]);
+    // Optionally reorder the array to put main image first
+    const reorderedPhotos = [carPhotos[index], ...carPhotos.filter((_, i) => i !== index)];
+    setCarPhotos(reorderedPhotos);
+    setMainImageIndex(0); // Main image is now at index 0
+    // setVehicleInfo(prev => ({
+    //   ...prev,
+    //   carimg: reorderedPhotos.join(',')
+    // }));
+  };
+
+  const removeCarPhoto = (indexToRemove: number) => {
+    setCarPhotos(prev => {
+      const newPhotos = prev.filter((_, index) => index !== indexToRemove);
+      
+      // Handle main image index update
+      if (indexToRemove === mainImageIndex) {
+        // If removing main image, set first available as main
+        if (newPhotos.length > 0) {
+          setMainImageIndex(0);
+          setMainImage(newPhotos[0]);
+        } else {
+          setMainImageIndex(-1);
+          setMainImage('');
+        }
+      } else if (indexToRemove < mainImageIndex) {
+        // If removing an image before main image, adjust index
+        setMainImageIndex(prevIndex => prevIndex - 1);
+      }
+      
+      // setVehicleInfo(prevInfo => ({
+      //   ...prevInfo,
+      //   carimg: newPhotos.join(',')
+      // }));
+      return newPhotos;
+    });
+  };
+
   const handleFileChange = async (e: any, type: string) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -1563,15 +1634,6 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
     try {
       setImageUploading(true);
       const fileUrl = await uploadImage(file);
-
-      if (type === "carimg") {
-        setCarPhoto(fileUrl);
-        setVehicleInfo((prev) => ({
-          ...prev,
-          carimg: fileUrl
-        }));
-        return;
-      }
 
       setDocuments((prev) => ({
         ...prev,
@@ -1592,6 +1654,7 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
     if (step > 1) setStep(step - 1);
   };
 
+
   const handleComplete = async () => {
     try {
       const isVehicleInfoValid =
@@ -1611,8 +1674,6 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
       const isDocumentsValid =
         documents.registration &&
         documents.cpr ;
-        // &&
-        // documents.insurance;
 
       if (!isDocumentsValid) {
         alert("Please upload all required documents");
@@ -1643,6 +1704,14 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
         return;
       }
 
+      if(financialDetails.paymentType === "Installment" && financialDetails.advance === ''){ 
+        alert("Please enter the advance amount");
+        return;
+      }
+
+
+      
+
       if (financialDetails.leaseEnabled) {
         if (!financialDetails.leaseAmount || !financialDetails.leaseType) {
           alert("Lease information is required");
@@ -1650,11 +1719,19 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
         }
       }
 
+            // In handleComplete function, after the documents validation
+      if (carPhotos.length === 0) {
+        alert("Please upload at least one car photo");
+        return;
+      }
+
+
+
       setaddingCar(true);
 
       const carData = {
         carSource: carSource,
-        CarImage: carPhoto,
+        CarImage: carPhotos, // This now contains array of URLs
         investorId: carSource === "Investor" ? financialDetails.investorId : null,
         customerId: carSource === "Customer" ? financialDetails.customerId : null,
         CompanyId: carSource === "Company Car" ? financialDetails.CompanyId : null,
@@ -1684,6 +1761,8 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
       };
 
       console.log("Car Data:", carData);
+      console.log("Main Image:", mainImage);
+      console.log("All Images:", carPhotos);
 
       const response = await addInventory(carData);
       console.log("API Response:", response);
@@ -1692,7 +1771,7 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
     } catch (error) {
       setaddingCar(false);
       console.error("Error adding inventory:", error);
-      alert(error?.message || "Something went wrong while adding the car.");
+      alert( "Something went wrong while adding the car.");
     }
   };
 
@@ -1819,7 +1898,7 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="flex flex-col items-center gap-3 bg-white p-6 rounded-lg shadow-lg">
             <div className="w-8 h-8 border-4 border-gray-300 border-t-primary rounded-full animate-spin"></div>
-            <p className="text-sm font-medium text-black">Uploading image...</p>
+            <p className="text-sm font-medium text-black">Uploading images...</p>
           </div>
         </div>
       )}
@@ -1903,21 +1982,67 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
             <CardContent>
               <div className="p-6 rounded-lg border border-border" style={{ backgroundColor: 'var(--form-section)' }}>
                 <div>
-                  <Label>Car Photo</Label>
+                  <Label>Car Photos (Multiple)</Label>
                   <Input
                     type="file"
                     accept=".jpg,.jpeg,.png"
+                    multiple
                     disabled={imageUploading}
-                    onChange={(e) => handleFileChange(e, "carimg")}
+                    onChange={handleMultipleFileChange}
                     className="bg-input-background mt-1 mb-3"
                   />
-                  {carPhoto && (
-                    <p className="text-xs text-green-500 mt-1">
-                      ✓ Image uploaded successfully
-                    </p>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    You can select multiple images at once (JPG, JPEG, PNG). Click the star button to set as main image.
+                  </p>
+                  
+                  {/* Display uploaded images */}
+                  {carPhotos.length > 0 && (
+                    <div className="mt-3">
+                      <Label>Uploaded Images ({carPhotos.length})</Label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
+                        {carPhotos.map((photo, index) => (
+                          <div key={index} className="relative group">
+                            <div className={`relative ${mainImageIndex === index ? 'ring-2 ring-primary ring-offset-2 rounded-md' : ''}`}>
+                              <img 
+                                src={photo} 
+                                alt={`Car ${index + 1}`}
+                                className="w-full h-24 object-cover rounded-md border"
+                              />
+                              {mainImageIndex === index && (
+                                <div className="absolute top-0 left-0 bg-primary text-white text-xs px-1.5 py-0.5 rounded-tl-md rounded-br-md">
+                                  Main
+                                </div>
+                              )}
+                            </div>
+                            <div className="absolute top-1 right-1 flex gap-1">
+                              {/* Set as Main Button */}
+                              {mainImageIndex !== index && (
+                                <button
+                                  type="button"
+                                  onClick={() => setAsMainImage(index)}
+                                  className="p-1 bg-yellow-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                  title="Set as main image"
+                                >
+                                  <Star className="h-3 w-3" />
+                                </button>
+                              )}
+                              {/* Delete Button */}
+                              <button
+                                type="button"
+                                onClick={() => removeCarPhoto(index)}
+                                className="p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                title="Delete image"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                   <div>
                     <Label htmlFor="make">Make</Label>
                     <Input
@@ -2163,7 +2288,7 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              {[1, 5, 10, 15, 20, 25, 28].map((day) => (
+                               {[1,2,3,4, 5,6,7,8,9, 10,11,12,13,14, 15,16,17,18,19, 20, 21,22,23,24, 25, 26,27, 28, 29,30,31].map((day) => (
                                 <SelectItem key={day} value={day.toString()}>
                                   Day {day} of month
                                 </SelectItem>
@@ -2277,7 +2402,7 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              {[1, 5, 10, 15, 20, 25, 28].map((day) => (
+                               {[1,2,3,4, 5,6,7,8,9, 10,11,12,13,14, 15,16,17,18,19, 20, 21,22,23,24, 25, 26,27, 28, 29,30,31].map((day) => (
                                 <SelectItem key={day} value={day.toString()}>
                                   Day {day} of month
                                 </SelectItem>
@@ -2400,7 +2525,7 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              {[1, 5, 10, 15, 20, 25, 28].map((day) => (
+                               {[1,2,3,4, 5,6,7,8,9, 10,11,12,13,14, 15,16,17,18,19, 20, 21,22,23,24, 25, 26,27, 28, 29,30,31].map((day) => (
                                 <SelectItem key={day} value={day.toString()}>
                                   Day {day} of month
                                 </SelectItem>
@@ -2515,7 +2640,7 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {[1, 5, 10, 15, 20, 25, 28].map((day) => (
+                            {[1,2,3,4, 5,6,7,8,9, 10,11,12,13,14, 15,16,17,18,19, 20, 21,22,23,24, 25, 26,27, 28, 29,30,31].map((day) => (
                               <SelectItem key={day} value={day.toString()}>
                                 Day {day} of month
                               </SelectItem>
