@@ -1,19 +1,15 @@
 import Cookies from 'js-cookie';
+import { apiRequest } from '@/app/api/AuthService/helperService';
   
 const BASE_URL =
   "https://carsappapis20260306224811-h5abbce0g9fjajhz.canadacentral-01.azurewebsites.net/api";
 
 export const ChangetoReceived = async (recordId) => {
-  const token = Cookies.get('token');
   try {
-    const response = await fetch(
-      `${BASE_URL}/money-records/mark-as-received/${recordId}`,
+    const response = await apiRequest(
+      `/api/money-records/mark-as-received/${recordId}`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
       }
     );
     // ✅ Handle specific 400 error

@@ -385,9 +385,18 @@ export function MoneyRecordsList({ onAddRecord, onViewDetails, userRole, initial
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={6} className="p-12 text-center text-muted-foreground italic text-sm">
-                        No records found matching your current filters.
+                      <td colSpan={6} >
+                        <div className="flex flex-col items-center justify-center h-64">
+                                   <p className="text-sm italic mb-5 font-medium text-muted-foreground">
+                                      No records found matching your current filters.
+                                   </p>
+                                    <Button  onClick={() => fetchRecords()} variant="outline">
+                                     Retry
+                                   </Button>
+                                 </div>
                       </td>
+                      
+        
                     </tr>
                   )}
                 </tbody>

@@ -13,7 +13,8 @@ import {
   IdCard,
   ArrowLeft,
   Edit,
-  X
+  X,
+  WifiOff
 } from 'lucide-react';
 
 interface Company {
@@ -43,7 +44,7 @@ export function Company({ userRole }: CompaniesProps) {
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-
+ const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -58,6 +59,21 @@ export function Company({ userRole }: CompaniesProps) {
   const isAdmin = userRole === 'Admin' || userRole === 'SuperAdmin';
   const isSuperAdmin = userRole === 'SuperAdmin' || userRole === 'Admin';
   const isCustomer = userRole === 'Customer';
+
+  // Monitor online/offline status
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
 
   // Fetch Companies
   useEffect(() => {
@@ -280,7 +296,27 @@ export function Company({ userRole }: CompaniesProps) {
       </div>
     );
   }
-
+// Show offline banner if disconnected
+  if (isOffline) {
+    return (
+      <div className="min-h-screen bg-background p-6 mt-20">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+            <div className="bg-destructive/10 p-4 rounded-full">
+              <WifiOff className="h-12 w-12 text-destructive" />
+            </div>
+            <h2 className="text-2xl font-bold text-foreground">No Internet Connection</h2>
+            <p className="text-muted-foreground text-center">
+              Please check your internet connection and try again.
+            </p>
+            <Button onClick={() => window.location.reload()} variant="outline">
+              Retry
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
   // Company Details View
   if (viewingDetails && selectedCompany) {
     return (

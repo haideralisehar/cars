@@ -16,7 +16,8 @@
     ArrowUpRight,
     ArrowDownRight,
     Users,
-    Wallet
+    Wallet,
+    WifiOff
   } from 'lucide-react';
 
   interface InvestorsProps {
@@ -30,10 +31,25 @@
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(true);
     const [investors, setInvestors] = useState([]);
+    const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
     const isAdmin = userRole === 'Admin' || userRole === 'SuperAdmin';
     const isSuperAdmin = userRole === 'SuperAdmin';
     const isInvestor = userRole === 'Investor';
+
+     // Monitor online/offline status
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
     // Fetch Investors
       useEffect(() => {
@@ -186,6 +202,28 @@
       );
     }
 
+     // Show offline banner if disconnected
+  if (isOffline) {
+    return (
+      <div className="min-h-screen bg-background p-6 mt-20">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+            <div className="bg-destructive/10 p-4 rounded-full">
+              <WifiOff className="h-12 w-12 text-destructive" />
+            </div>
+            <h2 className="text-2xl font-bold text-foreground">No Internet Connection</h2>
+            <p className="text-muted-foreground text-center">
+              Please check your internet connection and try again.
+            </p>
+            <Button onClick={() => fetchInvestors()} variant="outline">
+              Retry
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
     return (
       <div className="min-h-screen bg-background p-6">
         <div className="max-w-7xl mx-auto">
@@ -282,6 +320,23 @@
               </CardContent>
             </Card>
           </div>
+
+         
+
+           {filteredInvestors.length === 0 && (
+          <Card className="bg-card border-border">
+            <CardContent className="p-12 text-center">
+              <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <p className="text-muted-foreground">No investor found</p>
+
+              <Button onClick={() => fetchInvestors()} variant="outline">
+              Retry
+            </Button>
+              
+            </CardContent>
+          </Card>
+        )}
+      
           
 
           {/* Investor Cards */}
@@ -320,6 +375,8 @@
                       )}
                     </div>
                   </div>
+
+                 
 
                   {/* Financial Summary */}
                   <div className="space-y-3 mb-4">

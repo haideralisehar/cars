@@ -44,7 +44,7 @@ export function SellCarModal({ carId, isOpen, onClose, car, userRole, onRefresh 
     advanceAmount: '',
     installmentCount: '6',
     installmentAmount: '',
-    commission: '',
+    commission: '0',
     commissionType: 'Fixed' as 'Fixed' | 'Percentage',
   });
 
@@ -126,9 +126,9 @@ export function SellCarModal({ carId, isOpen, onClose, car, userRole, onRefresh 
     const isStepTwoValid = paymentTerms.sellingPrice.trim() !== '' && parseFloat(paymentTerms.sellingPrice) > 0;
     const isInstallmentValid = paymentTerms.advanceAmount.trim() !== '' && parseFloat(paymentTerms.advanceAmount) >= 0 && parseFloat(paymentTerms.advanceAmount) <= parseFloat(paymentTerms.sellingPrice);
 
-    const isCommissionValid =
-      paymentTerms.commission.trim() !== '' &&
-      parseFloat(paymentTerms.commission) >= 0;
+    // const isCommissionValid =
+    //   paymentTerms.commission.trim() !== '' &&
+    //   parseFloat(paymentTerms.commission) >= 0;
 
     const isemail = isValidEmail(purchaserDetails.email);
 
@@ -155,11 +155,11 @@ export function SellCarModal({ carId, isOpen, onClose, car, userRole, onRefresh 
       return;
     }
 
-    if (paymentTerms.commissionType === 'Fixed' && !isCommissionValid) {
-      alert('Please enter a valid commission amount.');
-      setStep(2);
-      return;
-    }
+    // if (paymentTerms.commissionType === 'Fixed' && !isCommissionValid) {
+    //   alert('Please enter a valid commission amount.');
+    //   setStep(2);
+    //   return;
+    // }
 
     if (paymentTerms.commissionType === 'Percentage' && (parseFloat(paymentTerms.commission) < 0 || parseFloat(paymentTerms.commission) > 100)) {
       alert('Please enter a valid commission percentage (0-100).');
@@ -722,8 +722,8 @@ export function LeaseCarModal({ carId, isOpen, onClose, car, userRole, onRefresh
     leaseRate: car?.leaseAmount?.toString() || '',
     duration: '',
     advanceAmount: '',
-    securityDeposit: '',
-    commission: '',
+    securityDeposit: '0',
+    commission: '0',
     commissionType: 'Fixed' as 'Fixed' | 'Percentage',
   });
 
@@ -748,12 +748,14 @@ export function LeaseCarModal({ carId, isOpen, onClose, car, userRole, onRefresh
     };
 
     const isStepOneValid = lesseeDetails.name.trim() !== '' && lesseeDetails.cpr.trim() !== '' && lesseeDetails.phone.trim() !== '' && lesseeDetails.licenseNumber.trim() !== '' && lesseeDetails.address.trim() !== '';
-    const isStepTwoValid = leaseTerms.leaseType.trim() !== '' && leaseTerms.leaseRate.trim() !== '' && leaseTerms.duration.trim() !== '' && leaseTerms.advanceAmount.trim() !== '' && leaseTerms.securityDeposit.trim() !== '';
+    const isStepTwoValid = leaseTerms.leaseType.trim() !== '' && leaseTerms.leaseRate.trim() !== '' && leaseTerms.duration.trim() !== '' && leaseTerms.advanceAmount.trim() !== ''
+    //  && leaseTerms.securityDeposit.trim() !== ''
+     ;
 
 
-    const isCommissionValid =
-      leaseTerms.commission.trim() !== '' &&
-      parseFloat(leaseTerms.commission) >= 0 || null;
+    // const isCommissionValid =
+    //   leaseTerms.commission.trim() !== '' &&
+    //   parseFloat(leaseTerms.commission) >= 0 || null;
 
     const isemail = isValidEmail(lesseeDetails.email);
 
@@ -776,19 +778,19 @@ export function LeaseCarModal({ carId, isOpen, onClose, car, userRole, onRefresh
 
     }
 
-    if (!isCommissionValid) {
-      alert('Please enter a valid commission amount.');
-      setStep(2);
-      return;
-    }
+    // if (!isCommissionValid) {
+    //   alert('Please enter a valid commission amount.');
+    //   setStep(2);
+    //   return;
+    // }
 
 
 
-    if (leaseTerms.commissionType === 'Percentage' && (parseFloat(leaseTerms.commission) < 0 || parseFloat(leaseTerms.commission) > 100)) {
-      alert('Please enter a valid commission percentage (0-100).');
-      setStep(2);
-      return;
-    }
+    // if (leaseTerms.commissionType === 'Percentage' && (parseFloat(leaseTerms.commission) < 0 || parseFloat(leaseTerms.commission) > 100)) {
+    //   alert('Please enter a valid commission percentage (0-100).');
+    //   setStep(2);
+    //   return;
+    // }
 
     setsolding(true);
 

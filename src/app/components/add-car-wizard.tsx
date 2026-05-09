@@ -1264,7 +1264,7 @@ const SearchableCompanySelect = ({ value, onChange, companies, loading, onOpen }
       >
         {selectedCompany ? (
           <span className="flex-1 text-left">
-            {selectedCompany.name} - CR: {selectedCompany.crNumber}
+            {selectedCompany.name} - email: {selectedCompany.email} 
           </span>
         ) : (
           <span className="flex-1 text-left text-muted-foreground">
@@ -1320,7 +1320,7 @@ const SearchableCompanySelect = ({ value, onChange, companies, loading, onOpen }
                   <div className="flex flex-row items-center gap-2">
                     <span className="font-medium">{company.name}</span>
                     <span className="text-xs text-muted-foreground">
-                      CR: {company.email} | {company.contactNumber}
+                      email: {company.email} 
                     </span>
                   </div>
                 </button>
@@ -1521,7 +1521,7 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
     customerId: null,
     investorAmount: '',
     customerName: '',
-    commission: '',
+    commission: '0',
     MonthlyDueDate: '10',
     commissionType: 'Fixed' as 'Fixed' | 'Percentage',
     leaseEnabled: false,
@@ -1661,7 +1661,7 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
         vehicleInfo.make &&
         vehicleInfo.model &&
         vehicleInfo.year &&
-        vehicleInfo.vin &&
+        // vehicleInfo.vin &&
         vehicleInfo.color &&
         vehicleInfo.registrationNumber &&
         vehicleInfo.insuranceExpiry;
@@ -1686,8 +1686,9 @@ export function AddCarWizard({ onComplete, onCancel }: AddCarWizardProps) {
 
       const isFinancialValidInvestor =
         financialDetails.investorAmount &&
-        financialDetails.askingPrice &&
-        financialDetails.commission;
+        financialDetails.askingPrice
+        //  &&
+        // financialDetails.commission;
 
       if (carSource === "Company Car" && !isFinancialValid) {
         alert("Please complete financial details");

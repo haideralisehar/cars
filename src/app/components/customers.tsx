@@ -16,7 +16,8 @@ import {
   IdCard,
   ArrowLeft,
   Edit,
-  X
+  X,
+  WifiOff
 } from 'lucide-react';
 
 interface Customer {
@@ -33,6 +34,7 @@ interface CustomersProps {
 }
 
 export function Customers({ userRole }: CustomersProps) {
+   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [viewingDetails, setViewingDetails] = useState(false);
@@ -54,6 +56,20 @@ export function Customers({ userRole }: CustomersProps) {
   const isAdmin = userRole === 'Admin' || userRole === 'SuperAdmin';
   const isSuperAdmin = userRole === 'SuperAdmin' || userRole === 'Admin';
   const isCustomer = userRole === 'Customer';
+
+     // Monitor online/offline status
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   // Fetch Customers
   useEffect(() => {
@@ -529,6 +545,29 @@ const handleDeleteCustomer = async (customerId: string, customerName: string) =>
     );
   }
 
+   // Show offline banner if disconnected
+  if (isOffline) {
+    return (
+      <div className="min-h-screen bg-background p-6 mt-20">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+            <div className="bg-destructive/10 p-4 rounded-full">
+              <WifiOff className="h-12 w-12 text-destructive" />
+            </div>
+            <h2 className="text-2xl font-bold text-foreground">No Internet Connection</h2>
+            <p className="text-muted-foreground text-center">
+              Please check your internet connection and try again.
+            </p>
+            <Button onClick={() => fetchCustomers()} variant="outline">
+              Retry
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+
   // Main Customers List View
   return (
     <div className="min-h-screen bg-background p-6">
@@ -748,6 +787,7 @@ const handleDeleteCustomer = async (customerId: string, customerName: string) =>
                   <Plus className="h-5 w-5 mr-2" />
                   Add First Customer
                 </Button>
+                
               )}
             </CardContent>
           </Card>

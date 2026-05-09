@@ -1029,12 +1029,12 @@ export function CashFlow({ userRole }: CashFlowProps) {
                         <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
                           Payment Mode
                         </th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
+                        {/* <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
                           Status
                         </th>
                         <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
                           Action
-                        </th>
+                        </th> */}
                       </tr>
                     </thead>
                     <tbody>
@@ -1051,7 +1051,7 @@ export function CashFlow({ userRole }: CashFlowProps) {
                           </td>
                           <td className="py-3 px-4 text-sm">{transaction.reference}</td>
                           <td className="py-3 px-4 text-sm">{transaction.paymentMode}</td>
-                          <td className="py-3 px-4 text-sm">
+                          {/* <td className="py-3 px-4 text-sm">
                             <Badge
                               variant={
                                 transaction.allocationStatus === 'Fully Allocated'
@@ -1063,8 +1063,8 @@ export function CashFlow({ userRole }: CashFlowProps) {
                             >
                               {transaction.allocationStatus}
                             </Badge>
-                          </td>
-                          <td className="py-3 px-4 text-sm">
+                          </td> */}
+                          {/* <td className="py-3 px-4 text-sm">
                             <div className="flex gap-2">
                               {transaction.allocationStatus === 'Not Allocated' ? (
                                 <Button
@@ -1111,7 +1111,7 @@ export function CashFlow({ userRole }: CashFlowProps) {
                                 </>
                               )}
                             </div>
-                          </td>
+                          </td> */}
                         </tr>
                       ))}
                     </tbody>

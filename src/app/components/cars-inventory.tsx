@@ -721,6 +721,8 @@ import { getCarInstallments } from '@/app/api/CarInventory/GetCarInstallment';
 import { payCarInstallment } from '@/app/api/CarInventory/payCarInstallments';
 import { CarImageGallery } from '@/app/components/carGallary';
 
+import { refreshToken } from '@/app/api/Auth/refresh';
+
 
 
 // Define props interface
@@ -776,18 +778,45 @@ export function CarsInventory({
     setCurrentPage(1);
   }, [searchTerm, sourceFilter, statusFilter]);
 
+  // const fetchCars = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const data = await getInventory();
+  //     setCars(data);
+  //     console.log("Car Data:", data);
+  //   } catch (error) {
+  //     console.error("Failed to fetch cars:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const fetchCars = async () => {
-    try {
-      setLoading(true);
-      const data = await getInventory();
-      setCars(data);
-      console.log("Car Data:", data);
-    } catch (error) {
-      console.error("Failed to fetch cars:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true);
+    const data = await getInventory();
+    
+    // Sort cars by date (newest first) - FIXED
+    const sortedData = [...data].sort((a, b) => {
+      // Safely get dates with fallback values
+      const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+      const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+      
+      // Check if dates are valid
+      const timeA = isNaN(dateA.getTime()) ? 0 : dateA.getTime();
+      const timeB = isNaN(dateB.getTime()) ? 0 : dateB.getTime();
+      
+      return timeB - timeA; // Descending order (newest first)
+    });
+    
+    setCars(sortedData);
+    console.log("Car Data:", sortedData);
+  } catch (error) {
+    console.error("Failed to fetch cars:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const filterCars = () => {
     let filtered = [...cars];
@@ -912,6 +941,19 @@ export function CarsInventory({
    
   };
 
+  const refresh = async () => {
+    try {
+      setLoading(true);
+      await refreshToken();
+      await fetchCars();
+    } catch (error) {
+      console.error('Error refreshing token:', error);
+      alert('Failed to refresh token. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Submit installment payment
   const submitInstallmentPayment = async (paymentData: any) => {
     try {
@@ -963,10 +1005,23 @@ export function CarsInventory({
           </div>
 
           {isAdmin && (
+            <>
             <Button onClick={onAddNewCar} size="lg">
               <Plus className="h-5 w-5 mr-2" />
               Add New Car
             </Button>
+
+            {/* <Button onClick={refresh} disabled={loading}>
+              {loading ? (
+                <span className="flex items-center">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Refreshing...
+                </span>
+              ) : (
+                "Refresh Token"
+              )}
+            </Button> */}
+            </>
           )}
         </div>
 
@@ -1282,10 +1337,13 @@ export function CarsInventory({
             )}
           </>
         ) : (
-          <div className="flex items-center justify-center h-64">
+          <div className="flex flex-col items-center justify-center h-64">
             <p className="text-lg font-medium text-muted-foreground">
               No Records Found...
             </p>
+             <Button  onClick={() => fetchCars()} variant="outline">
+              Retry
+            </Button>
           </div>
         )}
       </div>

@@ -17,7 +17,7 @@ export const refreshToken = async () => {
 
     // Store token in cookies
           Cookies.set("token", data.token, {
-            expires: 14,
+            expires: 7,
             secure: true,
             sameSite: "strict",
           });

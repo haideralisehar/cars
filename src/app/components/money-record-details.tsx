@@ -1,3 +1,406 @@
+// import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/app/components/ui/card';
+// import { Button } from '@/app/components/ui/button';
+// import { Badge } from '@/app/components/ui/badge';
+// import { useState, useEffect, useCallback, useRef, use } from 'react';
+// import { 
+//   ArrowLeft, 
+//   DollarSign, 
+//   Calendar, 
+//   User, 
+//   Clock, 
+//   CheckCircle2, 
+//   ExternalLink,
+//   FileText,
+//   AlertCircle,
+//   History,
+//   Tag
+// } from 'lucide-react';
+// import { MoneyRecord, mockMoneyRecords } from '@/types/money-record';
+// import { ChangetoPaid } from '@/app/api/MoneyRecords/Paid_Received/paid';
+// import { ChangetoReceived } from '@/app/api/MoneyRecords/Paid_Received/received';
+// import { getMoneyRecord } from '@/app/api/MoneyRecords/getByid';
+ 
+// interface MoneyRecordDetailsProps {
+//   record: MoneyRecord | null;
+//   onBack: () => void;
+//   userRole: string;
+// }
+
+// export function MoneyRecordDetails({ record, onBack, userRole }: MoneyRecordDetailsProps) {
+//   const isAdmin = userRole === 'Admin' || userRole === 'SuperAdmin';
+//   const [paidLoaded, setPaidLoaded] = useState(false);
+//   const [currentRecord, setCurrentRecord] = useState<MoneyRecord | null>(record);
+//    const [isLoading, setIsLoading] = useState(true);
+
+//   console.log('id based records:', currentRecord);
+//   // console.log(record);
+
+//   useEffect(() => {
+    
+//     fetchRecordData();
+//   }, [record?.id]); // Re-fetch when record ID changes
+
+//   const fetchRecordData = async () => {
+//       if (!record?.id) {
+//         setIsLoading(false);
+//         return;
+//       }
+
+//       setIsLoading(true);
+//       try {
+//         const response = await getMoneyRecord(record.id);
+//         setCurrentRecord(response);
+//       } catch (error) {
+//         console.error('Error fetching record details:', error);
+//         // Fallback to the passed record prop if API call fails
+//         setCurrentRecord(record);
+//       } finally {
+//         setIsLoading(false);
+//       }
+//     };
+
+  
+  
+//   const handleMarkPaid = async (id: string) => {
+   
+//     setPaidLoaded(true); // Show loading state immediately
+//     try {
+
+//       const response = await ChangetoPaid(id);
+//       alert(`${response.message}` );
+//       setPaidLoaded(false); 
+//       fetchRecordData(); // Refresh data to get updated status
+//       // onBack();
+      
+//     } catch (error) {
+//       console.error('Error marking as paid:', error);
+//       setPaidLoaded(false); 
+//       alert('Failed to mark as paid. Please try again.');
+//     }
+
+//   };
+  
+//   const handleMarkReceived =async (id: string) => {
+//     setPaidLoaded(true); 
+//     try {
+//       const response =await ChangetoReceived(id);
+//       alert(`${response.message}` );
+//       setPaidLoaded(false); 
+//       fetchRecordData();
+//       // onBack();
+    
+//     } catch (error) {
+//       console.error('Error marking as received:', error);
+//       setPaidLoaded(false); 
+//       alert(`Failed to mark as received. Please try again. Error: ${error}`);
+//     }
+//   };
+
+//   // Loading state for initial data fetch
+//   if (isLoading) {
+//     return (
+//       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center 
+//                 bg-black/40 dark:bg-black/70 backdrop-blur-sm">
+//         <div className="w-12 h-12 border-4 border-gray-300 border-t-orange-500 rounded-full animate-spin"></div>
+//         <p className="mt-3 text-lg font-medium text-white">
+//           Loading record details...
+//         </p>
+//       </div>
+//     );
+//   }
+
+  
+
+  
+  
+//   if (!record) {
+//     return (
+//       <div className="p-6 max-w-5xl mx-auto">
+//         <Card className="bg-card border-border">
+//           <CardContent className="py-12 text-center">
+//             <AlertCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+//             <p className="text-muted-foreground">Record not found</p>
+//             <Button variant="ghost" onClick={onBack} className="mt-4">
+//               <ArrowLeft className="h-4 w-4 mr-2" />
+//               Back to Records
+//             </Button>
+//           </CardContent>
+//         </Card>
+//       </div>
+//     );
+//   }
+
+//   if(paidLoaded){
+//     return (
+
+//       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center 
+//                 bg-black/40 dark:bg-black/70 backdrop-blur-sm">
+  
+//   {/* Spinner */}
+//   <div className="w-12 h-12 border-4 border-gray-300 border-t-orange-500 rounded-full animate-spin"></div>
+  
+//   {/* Text */}
+//   <p className="mt-3 text-lg font-medium text-white">
+//     Processing...
+//   </p>
+
+// </div>
+//     );
+
+//   }
+
+
+
+//   return (
+    
+//     <div className="p-6 max-w-5xl mx-auto space-y-6">
+//       <div className="flex items-center justify-between">
+//         <div className="flex items-center gap-4">
+//           <Button variant="ghost" size="icon" onClick={onBack} className="text-muted-foreground">
+//             <ArrowLeft className="h-5 w-5" />
+//           </Button>
+//           <div>
+//             <h1 className="text-2xl font-bold text-foreground">{currentRecord?.record?.title}</h1>
+//             <div className="flex items-center gap-2 mt-1">
+//               <Badge variant="outline" className="text-[10px] bg-secondary border-border text-muted-foreground">
+//                 ID: {currentRecord?.record?.id}
+//               </Badge>
+//               <Badge className="bg-primary/10 text-primary border-primary/20">
+//                 {currentRecord?.record?.category}
+//               </Badge>
+//               {currentRecord?.record?.receiptPath && (
+//                 <Badge className="bg-green-500/10 text-green-500 border-green-500/20 cursor-pointer" onClick={() => window.open(currentRecord?.record?.receiptPath, '_blank')}>
+//                   View Receipt Document
+//                 </Badge>
+//               )}
+//             </div>
+//           </div>
+//         </div>
+//         <div className="flex gap-2">
+//           {currentRecord?.record?.payableStatus === 'Pending' && isAdmin && (
+//             <Button onClick={() => handleMarkPaid(record.id)} className="bg-green-600 hover:bg-green-700 text-white">
+//               <CheckCircle2 className="h-4 w-4 mr-2" />
+//               Mark as Paid 
+//             </Button>
+//           )}
+//           {currentRecord?.record.receivableStatus === 'Pending' && isAdmin && (
+//             <Button onClick={() => handleMarkReceived(record.id)} className="bg-blue-600 hover:bg-blue-700 text-white">
+//               <CheckCircle2 className="h-4 w-4 mr-2" />
+//               Mark as Received
+//             </Button>
+//          )} 
+//         </div>
+//       </div>
+
+//       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+//         {/* Left Column - Record Info */}
+//         <div className="lg:col-span-2 space-y-6">
+//           <Card className="bg-card border-border">
+//             <CardHeader>
+//               <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+//                 <FileText className="h-4 w-4 text-primary" />
+//                 Summary
+//               </CardTitle>
+//             </CardHeader>
+//             <CardContent className="space-y-6">
+//               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+//                 <div className="space-y-1">
+//                   <p className="text-xs text-muted-foreground uppercase font-bold tracking-widest">Linked Entity</p>
+//                   <div className="flex items-center gap-2">
+//                      {currentRecord?.record?.linkType == 'none' && (
+//                       <p className="text-muted-foreground italic">None</p>
+//                     ) }
+
+//                     {currentRecord?.record?.linkType == 'Company' && (
+//                       <>
+//                         <p className="font-bold text-lg text-foreground">{currentRecord?.record?.company?.name}</p>
+//                         <Badge variant="outline" className="text-[10px]">{currentRecord?.record?.linkType}</Badge>
+//                       </>
+//                     ) }
+
+//                     {currentRecord?.record?.linkType == 'Investor' && (
+//                       <>
+//                         <p className="font-bold text-lg text-foreground">{currentRecord?.record?.investor?.investorName}</p>
+//                         <Badge variant="outline" className="text-[10px]">{currentRecord?.record?.linkedToType}</Badge>
+//                       </>
+//                     ) }
+
+//                     {currentRecord?.record?.linkType == 'car' && (
+//                       <>
+//                         <p className="font-bold text-lg text-foreground">{currentRecord?.record?.car?.make}</p>
+//                         <Badge variant="outline" className="text-[10px]">{currentRecord?.record?.linkType}</Badge>
+//                       </>
+//                     ) }
+
+//                     {currentRecord?.record?.linkType == 'client' && (
+//                       <>
+//                         <p className="font-bold text-lg text-foreground">{currentRecord?.record?.customer?.customerName}</p>
+//                         <Badge variant="outline" className="text-[10px]">{currentRecord?.record?.linkType}</Badge>
+//                       </>
+//                     ) }
+//                   </div>
+//                 </div>
+//                 <div className="space-y-1">
+//                   <p className="text-xs text-muted-foreground uppercase font-bold tracking-widest">Created By</p>
+//                   <div className="flex items-center gap-2">
+//                     <User className="h-4 w-4 text-primary" />
+//                     <p className="font-bold text-foreground">{currentRecord?.activityLogs?.[0]?.performedBy}</p>
+//                     <p className="text-xs text-muted-foreground">• {new Date(currentRecord?.record?.createdAt).toLocaleDateString()}</p>
+//                   </div>
+//                 </div>
+//               </div>
+
+//               <div className="space-y-1">
+//                 <p className="text-xs text-muted-foreground uppercase font-bold tracking-widest">Description</p>
+//                 <p className="text-foreground leading-relaxed">
+//                   {record.description || "No description provided."}
+//                 </p>
+//               </div>
+
+//               {/* {record.receiptUrl && (
+//                 <div className="pt-4 border-t border-border">
+//                   <p className="text-xs text-muted-foreground uppercase font-bold tracking-widest mb-3">Receipt Preview</p>
+//                   <div className="relative aspect-video bg-secondary rounded-lg border border-border flex items-center justify-center group overflow-hidden">
+//                     <p className="text-sm text-muted-foreground">Receipt Image Preview</p>
+//                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+//                       <Button variant="secondary" size="sm">
+//                         <ExternalLink className="h-4 w-4 mr-2" />
+//                         View Full Size
+//                       </Button>
+//                     </div>
+//                   </div>
+//                 </div>
+//               )} */}
+//             </CardContent>
+//           </Card>
+
+//           <Card className="bg-card border-border">
+//             <CardHeader>
+//               <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+//                 <History className="h-4 w-4 text-primary" />
+//                 Activity Log
+//               </CardTitle>
+//             </CardHeader>
+//             <CardContent>
+//               <div className="space-y-4">
+//                   {currentRecord?.activityLogs?.slice().reverse().map((log, index, reversedArray) => (
+//                     <div key={log.id} className="flex gap-4 items-start relative">
+//                       {index !== reversedArray.length - 1 && (
+//                         <div className="absolute left-2 top-6 bottom-[-16px] w-[1px] bg-border" />
+//                       )}
+//                       <div className="w-4 h-4 rounded-full bg-primary/20 border-2 border-primary flex-shrink-0 mt-1" />
+//                       <div className="flex-1 pb-4">
+//                         <p className="text-sm font-bold text-foreground">{log.action}</p>
+//                         <div className="flex items-center gap-2 mt-1">
+//                           <p className="text-xs text-muted-foreground flex items-center gap-1">
+//                             <User className="h-3 w-3" /> {log.performedBy}
+//                           </p>
+//                           <p className="text-xs text-muted-foreground flex items-center gap-1">
+//                             <Clock className="h-3 w-3" /> {new Date(log.createdAt).toLocaleString()}
+//                           </p>
+//                         </div>
+//                       </div>
+//                     </div>
+//                   ))}
+//                 </div>
+              
+
+//               {/* <div className="p-4 bg-secondary rounded-lg border border-border">
+//                 <p className="text-sm text-muted-foreground uppercase tracking-widest font-bold mb-2">No activity log available.</p>
+//                 <p className="text-xs text-muted-foreground italic">Activity logs will appear here once actions are taken on this record.</p>
+//               </div> */}
+                  
+//             </CardContent>
+//           </Card>
+//         </div>
+
+//         {/* Right Column - Financial Panels */}
+//         <div className="space-y-6">
+//           {currentRecord?.record.payableAmount && (
+//             <Card className="bg-card border-border overflow-hidden">
+//               <div className="h-1 bg-destructive" />
+//               <CardHeader className="pb-2">
+//                 <div className="flex items-center justify-between">
+//                   <CardTitle className="text-sm font-bold text-destructive flex items-center gap-2 uppercase tracking-widest">
+//                     Payable
+//                   </CardTitle>
+//                   <Badge 
+//                     className={currentRecord?.record?.payableStatus === 'Paid' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'}
+//                   >
+//                     {currentRecord?.record?.payableStatus}
+//                   </Badge>
+//                 </div>
+//               </CardHeader>
+//               <CardContent className="space-y-4">
+//                 <div className="p-4 bg-secondary rounded-lg">
+//                   <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-bold">Total Amount</p>
+//                   <p className="text-3xl font-black text-foreground">BHD{record.payableAmount?.toLocaleString()}</p>
+//                 </div>
+//                 <div className="space-y-3 px-1">
+//                   <div className="flex justify-between items-center">
+//                     <span className="text-sm text-muted-foreground">Payable To</span>
+//                     <span className="text-sm font-bold text-foreground">{record.payableTo}</span>
+//                   </div>
+//                   <div className="flex justify-between items-center">
+//                     <span className="text-sm text-muted-foreground">Date</span>
+//                     <span className="text-sm font-bold text-foreground">{record.payableDate ? new Date(record.payableDate).toLocaleDateString() : 'N/A'}</span>
+//                   </div>
+//                 </div>
+//                 {!isAdmin && currentRecord?.record.payableStatus === 'Pending' && (
+//                   <div className="p-3 bg-secondary/50 rounded border border-border flex items-center gap-2 mt-4">
+//                     <AlertCircle className="h-4 w-4 text-muted-foreground" />
+//                     <p className="text-[10px] text-muted-foreground italic">Restricted: Only Admins can mark as paid.</p>
+//                   </div>
+//                 )}
+//               </CardContent>
+//             </Card>
+//           )}
+
+//           {currentRecord?.record.receivableAmount && (
+//             <Card className="bg-card border-border overflow-hidden">
+//               <div className="h-1 bg-primary" />
+//               <CardHeader className="pb-2">
+//                 <div className="flex items-center justify-between">
+//                   <CardTitle className="text-sm font-bold text-primary flex items-center gap-2 uppercase tracking-widest">
+//                     Receivable
+//                   </CardTitle>
+//                   <Badge 
+//                     className={currentRecord?.record.receivableStatus === 'Received' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : 'bg-purple-500/10 text-purple-500 border-purple-500/20'}
+//                   >
+//                     {currentRecord?.record.receivableStatus}
+//                   </Badge>
+//                 </div>
+//               </CardHeader>
+//               <CardContent className="space-y-4">
+//                 <div className="p-4 bg-secondary rounded-lg">
+//                   <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-bold">Total Amount</p>
+//                   <p className="text-3xl font-black text-foreground">BHD{record.receivableAmount?.toLocaleString()}</p>
+//                 </div>
+//                 <div className="space-y-3 px-1">
+//                   <div className="flex justify-between items-center">
+//                     <span className="text-sm text-muted-foreground">Receivable From</span>
+//                     <span className="text-sm font-bold text-foreground">{record.receivableFrom}</span>
+//                   </div>
+//                   <div className="flex justify-between items-center">
+//                     <span className="text-sm text-muted-foreground">Due Date</span>
+//                     <span className="text-sm font-bold text-foreground">{record.dueDate ? new Date(record.dueDate).toLocaleDateString() : 'N/A'}</span>
+//                   </div>
+//                 </div>
+//                 {!isAdmin && record.receivableStatus === 'Pending' && (
+//                   <div className="p-3 bg-secondary/50 rounded border border-border flex items-center gap-2 mt-4">
+//                     <AlertCircle className="h-4 w-4 text-muted-foreground" />
+//                     <p className="text-[10px] text-muted-foreground italic">Restricted: Only Admins can mark as received.</p>
+//                   </div>
+//                 )}
+//               </CardContent>
+//             </Card>
+//           )}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
@@ -13,7 +416,9 @@ import {
   FileText,
   AlertCircle,
   History,
-  Tag
+  Tag,
+  WifiOff,
+  Wifi
 } from 'lucide-react';
 import { MoneyRecord, mockMoneyRecords } from '@/types/money-record';
 import { ChangetoPaid } from '@/app/api/MoneyRecords/Paid_Received/paid';
@@ -30,70 +435,167 @@ export function MoneyRecordDetails({ record, onBack, userRole }: MoneyRecordDeta
   const isAdmin = userRole === 'Admin' || userRole === 'SuperAdmin';
   const [paidLoaded, setPaidLoaded] = useState(false);
   const [currentRecord, setCurrentRecord] = useState<MoneyRecord | null>(record);
-   const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [isRetrying, setIsRetrying] = useState(false);
 
   console.log('id based records:', currentRecord);
 
+  // Monitor online/offline status
   useEffect(() => {
+    const handleOnline = () => {
+      setIsOffline(false);
+      // Auto-refresh data when connection is restored
+      if (record?.id) {
+        fetchRecordData();
+      }
+    };
     
+    const handleOffline = () => {
+      setIsOffline(true);
+      alert('You are offline. Please check your internet connection.');
+    };
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [record?.id]);
+
+  useEffect(() => {
     fetchRecordData();
   }, [record?.id]); // Re-fetch when record ID changes
 
   const fetchRecordData = async () => {
-      if (!record?.id) {
-        setIsLoading(false);
-        return;
-      }
+    if (!record?.id) {
+      setIsLoading(false);
+      return;
+    }
 
-      setIsLoading(true);
-      try {
-        const response = await getMoneyRecord(record.id);
-        setCurrentRecord(response);
-      } catch (error) {
-        console.error('Error fetching record details:', error);
-        // Fallback to the passed record prop if API call fails
-        setCurrentRecord(record);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    // Don't try to fetch if offline
+    if (isOffline) {
+      setIsLoading(false);
+      return;
+    }
 
-  
+    setIsLoading(true);
+    try {
+      const response = await getMoneyRecord(record.id);
+      setCurrentRecord(response);
+    } catch (error) {
+      console.error('Error fetching record details:', error);
+      // Fallback to the passed record prop if API call fails
+      setCurrentRecord(record);
+      
+      // Check if error is due to being offline
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        setIsOffline(true);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   const handleMarkPaid = async (id: string) => {
-   
-    setPaidLoaded(true); // Show loading state immediately
+    // Check if offline before attempting
+    if (isOffline) {
+      alert('You are offline. Please check your internet connection and try again.');
+      return;
+    }
+    
+    setPaidLoaded(true);
     try {
-
       const response = await ChangetoPaid(id);
-      alert(`${response.message}` );
+      alert(`${response.message}`);
       setPaidLoaded(false); 
-      fetchRecordData(); // Refresh data to get updated status
-      // onBack();
-      
+      fetchRecordData();
     } catch (error) {
       console.error('Error marking as paid:', error);
       setPaidLoaded(false); 
-      alert('Failed to mark as paid. Please try again.');
+      
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        alert('Network error. Please check your internet connection and try again.');
+        setIsOffline(true);
+      } else {
+        alert('Failed to mark as paid. Please try again.');
+      }
     }
-
   };
   
-  const handleMarkReceived =async (id: string) => {
+  const handleMarkReceived = async (id: string) => {
+    // Check if offline before attempting
+    if (isOffline) {
+      alert('You are offline. Please check your internet connection and try again.');
+      return;
+    }
+    
     setPaidLoaded(true); 
     try {
-      const response =await ChangetoReceived(id);
-      alert(`${response.message}` );
+      const response = await ChangetoReceived(id);
+      alert(`${response.message}`);
       setPaidLoaded(false); 
       fetchRecordData();
-      // onBack();
-    
     } catch (error) {
       console.error('Error marking as received:', error);
       setPaidLoaded(false); 
-      alert(`Failed to mark as received. Please try again. Error: ${error}`);
+      
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        alert('Network error. Please check your internet connection and try again.');
+        setIsOffline(true);
+      } else {
+        alert(`Failed to mark as received. Please try again. Error: ${error}`);
+      }
     }
   };
+
+  const handleRetry = async() => {
+    setIsRetrying(true);
+    // Simulate retry logic
+    
+      await fetchRecordData();
+    
+  };
+
+  // Show offline banner
+  if (isOffline) {
+    return (
+      <div className="p-6 max-w-5xl mx-auto">
+        <Card className="bg-card border-border">
+          <CardContent className="py-12 text-center">
+            <div className="bg-destructive/10 p-4 rounded-full w-fit mx-auto mb-4">
+              <WifiOff className="h-12 w-12 text-destructive" />
+            </div>
+            <h2 className="text-xl font-bold text-foreground mb-2">No Internet Connection</h2>
+            <p className="text-muted-foreground mb-6">
+              Please check your internet connection and try again.
+            </p>
+            <div className="flex gap-3 justify-center">
+              <Button variant="outline" onClick={onBack}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Go Back
+              </Button>
+              <Button onClick={handleRetry} disabled={isRetrying}>
+                {isRetrying ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    Retrying...
+                  </>
+                ) : (
+                  <>
+                    <Wifi className="h-4 w-4 mr-2" />
+                    Retry Connection
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Loading state for initial data fetch
   if (isLoading) {
@@ -107,10 +609,6 @@ export function MoneyRecordDetails({ record, onBack, userRole }: MoneyRecordDeta
       </div>
     );
   }
-
-  
-
-  
   
   if (!record) {
     return (
@@ -131,28 +629,31 @@ export function MoneyRecordDetails({ record, onBack, userRole }: MoneyRecordDeta
 
   if(paidLoaded){
     return (
-
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center 
                 bg-black/40 dark:bg-black/70 backdrop-blur-sm">
-  
-  {/* Spinner */}
-  <div className="w-12 h-12 border-4 border-gray-300 border-t-orange-500 rounded-full animate-spin"></div>
-  
-  {/* Text */}
-  <p className="mt-3 text-lg font-medium text-white">
-    Processing...
-  </p>
-
-</div>
+        <div className="w-12 h-12 border-4 border-gray-300 border-t-orange-500 rounded-full animate-spin"></div>
+        <p className="mt-3 text-lg font-medium text-white">
+          Processing...
+        </p>
+      </div>
     );
-
   }
 
-
-
   return (
-    
     <div className="p-6 max-w-5xl mx-auto space-y-6">
+      {/* Add a small offline indicator in the header when connection is restored but data might be stale */}
+      {!isOffline && currentRecord?.activityLogs?.length === 0 && (
+        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Wifi className="h-4 w-4 text-yellow-500" />
+            <p className="text-sm text-yellow-500">Connection restored. Data may be outdated.</p>
+          </div>
+          <Button size="sm" variant="outline" onClick={fetchRecordData} className="h-8">
+            Refresh Data
+          </Button>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={onBack} className="text-muted-foreground">
@@ -165,7 +666,7 @@ export function MoneyRecordDetails({ record, onBack, userRole }: MoneyRecordDeta
                 ID: {currentRecord?.record?.id}
               </Badge>
               <Badge className="bg-primary/10 text-primary border-primary/20">
-                {record.category}
+                {currentRecord?.record?.category}
               </Badge>
               {currentRecord?.record?.receiptPath && (
                 <Badge className="bg-green-500/10 text-green-500 border-green-500/20 cursor-pointer" onClick={() => window.open(currentRecord?.record?.receiptPath, '_blank')}>
@@ -206,35 +707,35 @@ export function MoneyRecordDetails({ record, onBack, userRole }: MoneyRecordDeta
                 <div className="space-y-1">
                   <p className="text-xs text-muted-foreground uppercase font-bold tracking-widest">Linked Entity</p>
                   <div className="flex items-center gap-2">
-                     {record.linkedToType == 'None' && (
+                     {currentRecord?.record?.linkType == 'none' && (
                       <p className="text-muted-foreground italic">None</p>
                     ) }
 
-                    {record.linkedToType == 'Company' && (
+                    {currentRecord?.record?.linkType == 'Company' && (
                       <>
-                        <p className="font-bold text-lg text-foreground">{currentRecord?.record?.linkType}</p>
-                        <Badge variant="outline" className="text-[10px]">{record.linkedToType}</Badge>
+                        <p className="font-bold text-lg text-foreground">{currentRecord?.record?.company?.name}</p>
+                        <Badge variant="outline" className="text-[10px]">{currentRecord?.record?.linkType}</Badge>
                       </>
                     ) }
 
-                    {record.linkedToType == 'Investor' && (
+                    {currentRecord?.record?.linkType == 'Investor' && (
                       <>
                         <p className="font-bold text-lg text-foreground">{currentRecord?.record?.investor?.investorName}</p>
-                        <Badge variant="outline" className="text-[10px]">{record.linkedToType}</Badge>
+                        <Badge variant="outline" className="text-[10px]">{currentRecord?.record?.linkedToType}</Badge>
                       </>
                     ) }
 
-                    {record.linkedToType == 'Car' && (
+                    {currentRecord?.record?.linkType == 'car' && (
                       <>
-                        <p className="font-bold text-lg text-foreground">{record.linkedToName}</p>
-                        <Badge variant="outline" className="text-[10px]">{record.linkedToType}</Badge>
+                        <p className="font-bold text-lg text-foreground">{currentRecord?.record?.car?.make}</p>
+                        <Badge variant="outline" className="text-[10px]">{currentRecord?.record?.linkType}</Badge>
                       </>
                     ) }
 
-                    {record.linkedToType == 'Customer' && (
+                    {currentRecord?.record?.linkType == 'client' && (
                       <>
                         <p className="font-bold text-lg text-foreground">{currentRecord?.record?.customer?.customerName}</p>
-                        <Badge variant="outline" className="text-[10px]">{record.linkedToType}</Badge>
+                        <Badge variant="outline" className="text-[10px]">{currentRecord?.record?.linkType}</Badge>
                       </>
                     ) }
                   </div>
@@ -244,7 +745,7 @@ export function MoneyRecordDetails({ record, onBack, userRole }: MoneyRecordDeta
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-primary" />
                     <p className="font-bold text-foreground">{currentRecord?.activityLogs?.[0]?.performedBy}</p>
-                    <p className="text-xs text-muted-foreground">• {new Date(record.createdAt).toLocaleDateString()}</p>
+                    <p className="text-xs text-muted-foreground">• {new Date(currentRecord?.record?.createdAt).toLocaleDateString()}</p>
                   </div>
                 </div>
               </div>
@@ -255,21 +756,6 @@ export function MoneyRecordDetails({ record, onBack, userRole }: MoneyRecordDeta
                   {record.description || "No description provided."}
                 </p>
               </div>
-
-              {/* {record.receiptUrl && (
-                <div className="pt-4 border-t border-border">
-                  <p className="text-xs text-muted-foreground uppercase font-bold tracking-widest mb-3">Receipt Preview</p>
-                  <div className="relative aspect-video bg-secondary rounded-lg border border-border flex items-center justify-center group overflow-hidden">
-                    <p className="text-sm text-muted-foreground">Receipt Image Preview</p>
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <Button variant="secondary" size="sm">
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        View Full Size
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )} */}
             </CardContent>
           </Card>
 
@@ -302,20 +788,13 @@ export function MoneyRecordDetails({ record, onBack, userRole }: MoneyRecordDeta
                     </div>
                   ))}
                 </div>
-              
-
-              {/* <div className="p-4 bg-secondary rounded-lg border border-border">
-                <p className="text-sm text-muted-foreground uppercase tracking-widest font-bold mb-2">No activity log available.</p>
-                <p className="text-xs text-muted-foreground italic">Activity logs will appear here once actions are taken on this record.</p>
-              </div> */}
-                  
             </CardContent>
           </Card>
         </div>
 
         {/* Right Column - Financial Panels */}
         <div className="space-y-6">
-          {record.isPayable && (
+          {currentRecord?.record.payableAmount && (
             <Card className="bg-card border-border overflow-hidden">
               <div className="h-1 bg-destructive" />
               <CardHeader className="pb-2">
@@ -355,7 +834,7 @@ export function MoneyRecordDetails({ record, onBack, userRole }: MoneyRecordDeta
             </Card>
           )}
 
-          {record.isReceivable && (
+          {currentRecord?.record.receivableAmount && (
             <Card className="bg-card border-border overflow-hidden">
               <div className="h-1 bg-primary" />
               <CardHeader className="pb-2">

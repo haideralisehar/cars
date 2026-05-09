@@ -54,6 +54,7 @@ function App() {
   const handleLogout = () => {
     logoutUser();
     Cookies.remove("token");
+    Cookies.remove("refreshToken");
     setIsAuthenticated(false);
     setUser(null);
   };
