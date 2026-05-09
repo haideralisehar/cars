@@ -1689,12 +1689,12 @@ export function CarDetails({
                           {carData?.sale ?  
                             <span className="text-4xl font-black text-primary">
                               BHD {((carData?.sale?.sellingPrice || 0) - (carData?.financialDetails?.buyingPrice + carData?.moneyRecords.reduce((total, record) => total + (record.payableAmount || 0), 0))) - 
-                                (10 / 100) * ((carData?.sale?.sellingPrice || 0) - (carData?.financialDetails?.buyingPrice + carData?.moneyRecords.reduce((total, record) => total + (record.payableAmount || 0), 0)))  } 
+                                (10 / 100) * ((carData?.sale?.sellingPrice || 0) - (carData?.financialDetails?.buyingPrice + carData?.moneyRecords.reduce((total, record) => total + (record.payableAmount || 0), 0))) + (carData?.lease && carData?.lease?.payments ? carData.lease.payments.reduce((sum, payment) => sum + (payment.amount || 0), 0) : 0)  } 
                             </span>
                             :
                             <span className="text-4xl font-black text-primary">
                               BHD {((carData?.financialDetails?.askingPrice || 0) - (carData?.financialDetails?.buyingPrice + carData?.moneyRecords.reduce((total, record) => total + (record.payableAmount || 0), 0))) - 
-                                (10 / 100) * ((carData?.financialDetails?.askingPrice || 0) - (carData?.financialDetails?.buyingPrice + carData?.moneyRecords.reduce((total, record) => total + (record.payableAmount || 0), 0)))}
+                                (10 / 100) * ((carData?.financialDetails?.askingPrice || 0) - (carData?.financialDetails?.buyingPrice + carData?.moneyRecords.reduce((total, record) => total + (record.payableAmount || 0), 0))) + (carData?.lease && carData?.lease?.payments ? carData.lease.payments.reduce((sum, payment) => sum + (payment.amount || 0), 0) : 0) }
                             </span>
                           }
                         </div>
@@ -1974,7 +1974,10 @@ export function CarDetails({
                       </div>
                     )}
                   </div> */}
+
+                  {carData?.additionalDocuments && carData.additionalDocuments.length > 0 && (
 <p className="font-medium capitalize">Additional Documents</p>
+)}
                   {/* Additional Documents */}
                   {carData?.additionalDocuments
   .filter(doc => !['registration', 'cpr',].includes(doc.documentName))

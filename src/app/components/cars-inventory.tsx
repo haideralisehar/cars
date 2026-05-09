@@ -707,7 +707,7 @@ import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'rea
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
-import { Plus, ShoppingCart, Key, DollarSign, Edit, Search, Filter, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RotateCcw, Loader2 } from 'lucide-react';
+import { Plus, ShoppingCart, Key, DollarSign, Edit, Search, Filter, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RotateCcw, Loader2, Activity, Receipt } from 'lucide-react';
 import { getInventory } from "@/app/api/CarInventory/getcarinventory";
 import { Input } from '@/app/components/ui/input';
 import {
@@ -1000,7 +1000,7 @@ export function CarsInventory({
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Cars Inventory</h1>
+            <h3 className="text-3xl font-bold text-foreground">Cars Inventory</h3>
             <p className="text-muted-foreground mt-1">{filteredCars.length} total vehicles</p>
           </div>
 
@@ -1131,7 +1131,7 @@ export function CarsInventory({
 
                   {/* Content */}
                   <CardContent
-                    className="p-4"
+                    className="pl-6"
                     onClick={() => isAdmin && onCarClick(car.id)}
                   >
                     <div className="space-y-3">
@@ -1205,7 +1205,7 @@ export function CarsInventory({
                       </>
                     )}
 
-                    {isAdmin && (
+                    {/* {isAdmin && (
                       <Button
                         variant="ghost"
                         size="sm"
@@ -1217,20 +1217,21 @@ export function CarsInventory({
                       >
                         <Edit className="h-4 w-4 text-primary" />
                       </Button>
-                    )}
+                    )} */}
 
                     {canAddExpense && (
                       <Button
+                        title="Add Expense"
                         variant="outline"
                         size="sm"
-                        className={!isAdmin ? "w-full" : "flex-shrink-0"}
+                        className={!isAdmin ? "w-full" :  "w-full"}
                         onClick={(e) => {
                           e.stopPropagation();
                           onAddExpense(car.id);
                         }}
                       >
-                        <DollarSign className="h-4 w-4 mr-1" />
-                        {!isAdmin && "Add Expense"}
+                        <Receipt className="h-4 w-4 mr-1" />
+                        Add Expense
                       </Button>
                     )}
                   </div>

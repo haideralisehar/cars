@@ -1118,6 +1118,12 @@ export function CashFlow({ userRole }: CashFlowProps) {
                   </table>
                 </div>
 
+                {currentIncomingData.length === 0 && (
+                  <p className="text-sm text-center text-muted-foreground pt-6">
+                    No incoming transactions to display.
+                  </p>
+                )}
+
                 {/* Incoming Pagination */}
                 {filteredIncoming.length > itemsPerPage && (
                   <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
@@ -1195,6 +1201,7 @@ export function CashFlow({ userRole }: CashFlowProps) {
                       </tr>
                     </thead>
                     <tbody>
+                    
                       {currentOutgoingData.map((transaction, index) => (
                         <tr key={transaction.id || index} className="border-b border-border hover:bg-secondary/50">
                           <td className="py-3 px-4 text-sm">
@@ -1215,6 +1222,11 @@ export function CashFlow({ userRole }: CashFlowProps) {
                     </tbody>
                   </table>
                 </div>
+                  {currentOutgoingData.length === 0 && (
+                  <p className="text-sm text-center text-muted-foreground pt-6">
+                    No outgoing transactions to display.
+                  </p>
+                )}
 
                 {/* Outgoing Pagination */}
                 {cashFlowData.outgoing.length > itemsPerPage && (

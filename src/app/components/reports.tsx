@@ -866,6 +866,13 @@ export function Reports({ userRole }) {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border">
+                        {reportData.audit.length === 0 && (
+                          <tr>
+                            <td colSpan="5" className="px-6 py-4 text-sm text-center text-muted-foreground">
+                              No transactions found for the selected date range.
+                            </td>
+                          </tr>
+                        )}
                         {reportData.audit.map((transaction, index) => (
                           <tr key={index} className="hover:bg-secondary/20 transition-colors">
                             <td className="px-6 py-4 text-sm whitespace-nowrap">
