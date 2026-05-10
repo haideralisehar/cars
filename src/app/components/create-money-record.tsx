@@ -1151,6 +1151,7 @@ interface Car {
   model: string;
   year: number;
   vin: string;
+  status: string;
   registrationNumber?: string;
 }
 // Add this Company interface after the Investor interface
@@ -2379,7 +2380,7 @@ const fetchCompanies = useCallback(async () => {
                           </div>
                         )}
                         
-                        {!carsLoading && !carsError && filteredCars.map((car) => (
+                        {/* {!carsLoading && !carsError && filteredCars.map((car) => (
                           <SelectItem key={car.id} value={car.id} className="text-sm font-medium py-3">
                             <div className="flex flex-col gap-0.5">
                               <span className="font-bold">{car.make} {car.model} {car.year}</span>
@@ -2388,8 +2389,22 @@ const fetchCompanies = useCallback(async () => {
                               </span>
                             </div>
                           </SelectItem>
-                        ))}
-                      </SelectContent>
+                        ))} */}
+
+                                        {!carsLoading && !carsError && filteredCars
+                  .filter(car => car.status !== "Sold")
+                  .map((car) => (
+                    <SelectItem key={car.id} value={car.id} className="text-sm font-medium py-3">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="font-bold">{car.make} {car.model} {car.year}</span>
+                        <span className="text-xs text-muted-foreground">
+                          VIN: {car.vin} {car.registrationNumber && `• ${car.registrationNumber}`}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))
+                }
+                                      </SelectContent>
                     </Select>
                     
                     {formData.linkedToId && (
