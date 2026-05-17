@@ -300,7 +300,7 @@
 // }
 
 import { useState, useMemo } from 'react';
-import { Document, Page, Text, View, StyleSheet, PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, PDFDownloadLink, PDFViewer, Image } from '@react-pdf/renderer';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
@@ -364,6 +364,12 @@ const styles = StyleSheet.create({
   },
   docInfoSection: {
     alignItems: 'flex-end',
+  },
+  logoImage: {
+    width: 200,
+    height: 60,
+    marginLeft: -25,
+    objectFit: 'contain',
   },
   docType: {
     fontSize: 20,
@@ -495,6 +501,48 @@ const styles = StyleSheet.create({
     marginTop: 5,
     alignSelf: 'flex-end',
   },
+ 
+  footerLeft: {
+    flex: 1,
+  },
+  footerCenter: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  footerRight: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  // footerText: {
+  //   fontSize: 9,
+  //   color: '#666666',
+  //   marginBottom: 4,
+  // },
+  footerLink: {
+    fontSize: 9,
+    color: '#ff7a1a',
+    marginBottom: 4,
+  },
+  footerBold: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: '#333333',
+    marginBottom: 4,
+  },
+  footerSocial: {
+    fontSize: 9,
+    color: '#ff7a1a',
+    marginBottom: 4,
+  },
+  footers: {
+    marginTop: 30,
+    textAlign: 'center',
+    fontSize: 10,
+    color: '#888888',
+    borderTopWidth: 1,
+    borderTopColor: '#dddddd',
+    paddingTop: 12,
+  },
 });
 
 // PDF Document Component
@@ -504,7 +552,7 @@ const InvoicePDF = ({ docType, recipient, lineItems, vatEnabled, vatPercentage, 
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.companySection}>
-          <Text style={styles.companyName}>Auto Lounge</Text>
+           <Image src="/assets/logos.png" style={styles.logoImage} />
           <Text style={styles.companySubtitle}>Premium Car Dealership</Text>
         </View>
         <View style={styles.docInfoSection}>
@@ -558,7 +606,7 @@ const InvoicePDF = ({ docType, recipient, lineItems, vatEnabled, vatPercentage, 
       </View>
 
       {/* Footer */}
-      <View style={styles.footer}>
+      {/* <View style={styles.footer}>
         <View style={styles.footerSection}>
           <Text style={styles.footerText}>Auto Lounge W.L.L</Text>
           <Text style={styles.footerText}>CR: 176932-1</Text>
@@ -571,7 +619,23 @@ const InvoicePDF = ({ docType, recipient, lineItems, vatEnabled, vatPercentage, 
           <Text style={styles.footerText}>Authorized Signature</Text>
           <View style={styles.signatureLine} />
         </View>
-      </View>
+      </View> */}
+
+      <View style={styles.footer}>
+                <View style={styles.footerLeft}>
+                  <Text style={styles.footerSocial}>@Autoloungebh</Text>
+                  <Text style={styles.footerText}>operations@autolounge.com</Text>
+                </View>
+                
+                <View style={styles.footerCenter}>
+                  <Text style={styles.footerLink}>www.autolounge.com.bh</Text>
+                  <Text style={styles.footerText}>+973 3951 0003</Text>
+                </View>
+                
+                <View style={styles.footerRight}>
+                  <Text style={styles.footerBold}>CR 176932-1</Text>
+                </View>
+              </View>
     </Page>
   </Document>
 );
