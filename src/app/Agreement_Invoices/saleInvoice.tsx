@@ -730,8 +730,8 @@ const generateInstallmentSchedule = (startDate: string, numberOfInstallments: nu
 // PDF Styles
 const styles = StyleSheet.create({
   page: {
-    paddingLeft: 32,
-    paddingRight: 32,
+    paddingLeft: 10,
+    paddingRight: 10,
     // paddingTop: 42,
     fontSize: 12,
     fontFamily: 'Helvetica',
@@ -741,7 +741,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1f1f1f',
     borderRadius: 18,
     padding: 28,
-    marginTop: 42,
+    marginTop: 10,
     marginBottom: 16,
     position: 'relative',
   },
@@ -816,7 +816,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e2e2e2',
     borderRadius: 14,
-    marginTop: 42,
+    marginTop: 28,
     overflow: 'hidden',
     paddingTop: 5,
   },
@@ -913,6 +913,12 @@ const styles = StyleSheet.create({
     color: '#e07117',
     fontWeight: 'bold',
   },
+
+  statusPaid:{
+     color: '#87f007',
+    fontWeight: 'bold',
+
+  },
   badge: {
     backgroundColor: '#ff7a1a',
     color: '#ffffff',
@@ -969,49 +975,83 @@ const styles = StyleSheet.create({
     padding: 10,
     fontSize: 10,
   },
-   footer: {
-    position: 'absolute',
-    bottom: 30,
-    left: 40,
-    right: 40,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e5e5',
-    paddingTop: 15,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  footerLeft: {
-    flex: 1,
-  },
-  footerCenter: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  footerRight: {
-    flex: 1,
-    alignItems: 'flex-end',
-  },
-  footerText: {
-    fontSize: 9,
-    color: '#666666',
-    marginBottom: 4,
-  },
-  footerLink: {
-    fontSize: 9,
-    color: '#ff7a1a',
-    marginBottom: 4,
-  },
-  footerBold: {
-    fontSize: 9,
-    fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 4,
-  },
-  footerSocial: {
-    fontSize: 9,
-    color: '#ff7a1a',
-    marginBottom: 4,
-  },
+   footerContainer: {
+  position: 'absolute',
+  bottom: 55,
+  left: 50,
+  right: 50,
+  marginBottom:10,
+
+  borderTopWidth: 1,
+  borderTopColor: '#6e6e6e',
+
+  paddingTop: 18,
+
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'flex-start',
+},
+
+footerColumn: {
+  flexDirection: 'column',
+  gap: 14,
+},
+
+footerItem: {
+  flexDirection: 'row',
+  alignItems: 'center',
+},
+
+footerIcon: {
+  width: 22,
+  height: 22,
+  marginRight: 12,
+  objectFit: 'contain',
+},
+
+footerText: {
+  fontSize: 11,
+  color: '#4a4a4a',
+  fontWeight: 500,
+},
+
+/* Bottom Orange Bar */
+bottomOrangeBar: {
+  position: 'absolute',
+  bottom: 0,
+  left: 0,
+  width: '100%',
+  height: 32,
+  backgroundColor: '#ff6b00',
+},
+
+/* Black Curved Section */
+bottomBlackCurve: {
+  position: 'absolute',
+  bottom: 0,
+  right: 0,
+
+  width: 360,
+  height: 40,
+
+  backgroundColor: '#000',
+
+  borderTopLeftRadius: 40,
+
+  justifyContent: 'center',
+  alignItems: 'flex-end',
+
+  paddingRight: 35,
+  paddingTop: 5,
+},
+
+/* CR Text */
+bottomCRText: {
+  color: '#fff',
+  fontSize: 16,
+  fontWeight: 'bold',
+},
+
   footers: {
     marginTop: 30,
     textAlign: 'center',
@@ -1028,6 +1068,72 @@ const styles = StyleSheet.create({
     objectFit: 'contain',
   },
 });
+
+
+const InstallmentScheduleTables = ({ schedule }: { schedule: any[] }) => {
+  // Sort installments by due date (lowest to highest)
+  const sortedSchedule = [...schedule].sort((a, b) => 
+    new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+  );
+
+  return (
+    <View style={styles.sections}>
+      <View style={styles.sectionTitle}>
+        <Text>Installment Schedule</Text>
+      </View>
+      <View style={styles.sectionContent}>
+        <View style={styles.installmentTable}>
+          <View style={styles.tableRow}>
+            <Text style={styles.installmentHeaderCell}>Installment #</Text>
+            <Text style={styles.installmentHeaderCell}>Due Date</Text>
+            <Text style={styles.installmentHeaderCell}>Amount</Text>
+            <Text style={styles.installmentHeaderCell}>Status</Text>
+            <Text style={styles.installmentHeaderCell}>Payment Date</Text>
+          </View>
+          {sortedSchedule.map((installment, index) => (
+            <View style={styles.tableRow} key={index}>
+              <Text style={styles.installmentCell}>{installment.installmentNumber}</Text>
+              <Text style={styles.installmentCell}>
+                {new Date(installment.dueDate).toLocaleDateString('en-GB')}
+              </Text>
+              <Text style={styles.installmentCell}>{installment.amount} BHD</Text>
+              <Text style={[
+                styles.installmentCell, 
+                installment.isPaid ? styles.statusPaid : styles.statusPending
+              ]}>
+                {installment.isPaid ? 'Paid' : 'Pending'}
+              </Text>
+              <Text style={styles.installmentCell}>
+                {installment.isPaid && installment.paidDate 
+                  ? new Date(installment.paidDate).toLocaleDateString('en-GB') 
+                  : '-'}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </View>
+    </View>
+  );
+};
+
+const InstallmentScheduleTabless = ({ schedule }: { schedule: any[] }) => {
+ 
+
+  return (
+    <View style={styles.sections}>
+      <View style={styles.sectionTitle}>
+        <Text>Payment History</Text>
+      </View>
+      <View style={styles.sectionContent}>
+        <View style={styles.installmentTable}>
+          <View style={styles.tableRow}>
+            <Text style={styles.installmentHeaderCell}>Note: Full payment was payed in Advance.</Text>
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+};
 
 // Installment Schedule Component
 const InstallmentScheduleTable = ({ schedule }: { schedule: any[] }) => (
@@ -1172,30 +1278,60 @@ export const LeaseAgreementPDF = ({ leaseData }: { leaseData: any }) => {
           </View>
         </View>
 
+        {leaseData.paymentType === "Installment" && leaseData?.sale && (
+      <InstallmentScheduleTables schedule={leaseData?.sale.installments} />
+    )}
+
+     {leaseData.paymentType === "Full"  && (
+      <InstallmentScheduleTabless schedule={leaseData} />
+    )}
+
         {/* INSTALLMENT SCHEDULE - Only show if paymentType is "Installment" */}
-        {leaseData.paymentType === "Installment" && installmentSchedule.length > 0 && (
+        {leaseData.paymentType === "Installment" && installmentSchedule.length > 0 && leaseData.isShow && (
+          
           <InstallmentScheduleTable schedule={installmentSchedule} />
         )}
 
-        <View style={styles.footer}>
-          <View style={styles.footerLeft}>
-            <Text style={styles.footerSocial}>@Autoloungebh</Text>
-            <Text style={styles.footerText}>operations@autolounge.com</Text>
+        <View style={styles.footerContainer}>
+        
+          {/* Left Side */}
+          <View style={styles.footerColumn}>
+        
+            <View style={styles.footerItem}>
+              <Image src="/assets/ins.png" style={styles.footerIcon} />
+              <Text style={styles.footerText}>@AutoLoungebh</Text>
+            </View>
+        
+            <View style={styles.footerItem}>
+              <Image src="/assets/net.png" style={styles.footerIcon} />
+              <Text style={styles.footerText}>www.autolounge.com.bh</Text>
+            </View>
+        
           </View>
-          
-          <View style={styles.footerCenter}>
-            <Text style={styles.footerLink}>www.autolounge.com.bh</Text>
-            <Text style={styles.footerText}>+973 3951 0003</Text>
+        
+          {/* Right Side */}
+          <View style={styles.footerColumn}>
+        
+            <View style={styles.footerItem}>
+              <Image src="/assets/gmail.png" style={styles.footerIcon} />
+              <Text style={styles.footerText}>operations@autolounge.com</Text>
+            </View>
+        
+            <View style={styles.footerItem}>
+              <Image src="/assets/phone.png" style={styles.footerIcon} />
+              <Text style={styles.footerText}>+973 3951 0003</Text>
+            </View>
+        
           </View>
-          
-          <View style={styles.footerRight}>
-            <Text style={styles.footerBold}>CR 176932-1</Text>
-          </View>
+        
         </View>
-
-        {/* <View style={styles.footers}>
-          <Text>AUTO LOUNGE W.L.L • {invoiceTitle} • BAHRAIN</Text>
-        </View> */}
+        
+        {/* Bottom Design */}
+        <View style={styles.bottomOrangeBar} />
+        
+        <View style={styles.bottomBlackCurve}>
+          <Text style={styles.bottomCRText}>CR 176932-1</Text>
+        </View>
       </Page>
     </Document>
   );

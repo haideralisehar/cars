@@ -1298,6 +1298,9 @@ import { getSales } from '@/app/api/Sell/getSell';
 import { getInstallments } from '@/app/api/Sell/getInstallments';
 import {payInstallment} from  '@/app/api/Sell/payInstallment'
 
+import { downloadLeaseAgreementPDFs } from '@/app/Agreement_Invoices/saleAgree';
+import { downloadSaleInvoicePDF } from '@/app/Agreement_Invoices/saleInvoice';
+
 // Add these imports for dropdown menu
 import {
   DropdownMenu,
@@ -1335,6 +1338,10 @@ interface Sale {
   perInstallmentAmount?: number;
   installments: Installment[];  // Array of installments
   status?: string;
+  advanceAmount?: number;
+  numberOfInstallments?: string;
+  cpr?: string;
+  phone?: string;
 }
 
 interface Installment {
@@ -1365,6 +1372,8 @@ export function SalesList({ onCarClick }: SalesListProps) {
   const [error, setError] = useState<string | null>(null);
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [downloadingAgreement, setDownloadingAgreement] = useState(false);
+  const [invoiceGenerated, setInvoiceGenerated] = useState(false);
 
   // Fetch sales data on component mount
   useEffect(() => {
@@ -1411,6 +1420,94 @@ export function SalesList({ onCarClick }: SalesListProps) {
         
     } catch (error) {
       console.error('Error paying installment:', error);
+    }
+  };
+
+   const remainingAmount = () => {
+    const totalPrice = parseFloat(paymentTerms.sellingPrice) || 0;
+    const advance = parseFloat(paymentTerms.advanceAmount) || 0;
+    return (totalPrice - advance).toFixed(2);
+  };
+
+  // create PDF LOGIC HERE
+  const prepareLeaseDataForPDF = (sale: Sale) => {
+    // Calculate total installments amount
+  const totalInstallmentsAmount = sale.installments?.reduce((total, installment) => {
+    return total + (installment.amount || 0);
+  }, 0) || 0;
+  
+  // Calculate total paid amount
+  const totalPaidAmount = sale.installments?.reduce((total, installment) => {
+    if (installment.isPaid) {
+      return total + (installment.amount || 0);
+    }
+    return total;
+  }, 0) || 0;
+  
+  // Calculate remaining amount
+  const remainingAmount = (sale.sellingPrice - sale.advanceAmount) - totalPaidAmount;
+  console.log("Remaining Amount: ", remainingAmount);
+
+  // Calculate Installment Amount
+  
+    return {
+      ref: 'invoice - ' + Math.floor(1560000 + Math.random() * 9870000),
+      agreementRef: 'sale - ' + Math.floor(100000 + Math.random() * 900000),
+      currentDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+      purchaserName: sale?.purchaserName || 'N/A',
+      purchaserCpr: sale?.cpr || 'N/A',
+      purchaserContact: sale?.phone || 'N/A',
+      vehicleModel: `${sale.car?.make} ${sale.car?.model}`,
+      vehicleYear: sale.car?.year?.toString() || '2024',
+      vehicleColor: sale.car?.color || 'White',
+      vehicleVin: sale.car?.vin || 'XXXXXX',
+      sellingPrice: sale.sellingPrice,
+      paymentType: sale?.paymentType,
+      numberOfInstallments: sale.paymentType === 'Installment' ? parseInt(sale.numberOfInstallments) : 0,
+      downPayment: sale.paymentType === 'Installment' ? parseFloat(sale.advanceAmount) : 0,
+      remainingAmount: sale.paymentType === 'Installment' ? remainingAmount : 0,
+      installmentPlan: sale.paymentType === 'Installment' ? `${sale.numberOfInstallments} installments of BHD ${totalInstallmentsAmount}` : 'N/A',
+      status: sale.paymentType === 'Full' ? 'Completed' : sale.paymentType === 'Installment' &&  sale.status,
+      sale: sale, // Include the entire sale object for more details in the PDF
+      isShow:false
+    
+    };
+  };
+
+   const handleGenerateAgreement = async (sale) => {
+    
+
+    console.log('Generating lease agreement...');
+    setDownloadingAgreement(true);
+    
+    try {
+      const leaseData = prepareLeaseDataForPDF(sale);
+      await downloadLeaseAgreementPDFs(leaseData);
+     setDownloadingAgreement(false);
+      // alert('Lease agreement downloaded successfully!');
+    } catch (error) {
+      console.error('Error generating agreement:', error);
+      alert('Error generating lease agreement. Please try again.');
+    } finally {
+      setDownloadingAgreement(false);
+    }
+  };
+
+  const handleGenerateInvoice = async(sale) => {
+   
+    console.log('Generating lease invoice...');
+    setInvoiceGenerated(true);
+
+     try {
+      const leaseData = prepareLeaseDataForPDF(sale);
+      await downloadSaleInvoicePDF(leaseData);
+      setInvoiceGenerated(true);
+      // alert('Lease invoice downloaded successfully!');
+    } catch (error) {
+      console.error('Error generating invoice:', error);
+      alert('Error generating lease invoice. Please try again.');
+    } finally {
+     setInvoiceGenerated(true);
     }
   };
 
@@ -1618,6 +1715,12 @@ export function SalesList({ onCarClick }: SalesListProps) {
                             )}
                             <DropdownMenuItem  onClick={() => onCarClick(sale.carId)}>
                               View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem  onClick={() => handleGenerateAgreement(sale)}>
+                              Download Sale Agreement
+                            </DropdownMenuItem>
+                             <DropdownMenuItem  onClick={() => handleGenerateInvoice(sale)}>
+                              Download Sale Invoice
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>

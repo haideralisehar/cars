@@ -645,8 +645,8 @@ const staticLeaseData = {
 // PDF Styles - Exactly matching HTML/CSS table structure
 const styles = StyleSheet.create({
   page: {
-    paddingLeft: 32,
-    paddingRight: 32,
+    paddingLeft: 5,
+    paddingRight: 5,
     // paddingTop: 42,
     fontSize: 12,
     fontFamily: 'Helvetica',
@@ -657,8 +657,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#1f1f1f',
     borderRadius: 18,
     padding: 28,
-    marginTop: 42,
-    marginBottom: 16,
+    marginTop:12,
+    marginBottom: 7,
     position: 'relative',
   },
   logo: {
@@ -717,7 +717,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e2e2e2',
     borderRadius: 14,
-    marginTop: 45,
+    marginTop: 10,
     overflow: 'hidden',
     paddingTop: 5,
   },
@@ -893,59 +893,82 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
 
-  // FOOTER - Matching the image exactly
- footer: {
-    position: 'absolute',
-    bottom: 30,
-    left: 40,
-    right: 40,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e5e5',
-    paddingTop: 15,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  footerLeft: {
-    flex: 1,
-  },
-  footerCenter: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  footerRight: {
-    flex: 1,
-    alignItems: 'flex-end',
-  },
-  footerText: {
-    fontSize: 9,
-    color: '#666666',
-    marginBottom: 4,
-  },
-  footerLink: {
-    fontSize: 9,
-    color: '#ff7a1a',
-    marginBottom: 4,
-  },
-  footerBold: {
-    fontSize: 9,
-    fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 4,
-  },
-  footerSocial: {
-    fontSize: 9,
-    color: '#ff7a1a',
-    marginBottom: 4,
-  },
-  footerBottom: {
-    marginTop: 12,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#eeeeee',
-    textAlign: 'center',
-    fontSize: 8,
-    color: '#999999',
-  },
+  footerContainer: {
+  position: 'absolute',
+  bottom: 55,
+  left: 50,
+  right: 50,
+  marginBottom:10,
+
+  borderTopWidth: 1,
+  borderTopColor: '#6e6e6e',
+
+  paddingTop: 18,
+
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'flex-start',
+},
+
+footerColumn: {
+  flexDirection: 'column',
+  gap: 14,
+},
+
+footerItem: {
+  flexDirection: 'row',
+  alignItems: 'center',
+},
+
+footerIcon: {
+  width: 22,
+  height: 22,
+  marginRight: 12,
+  objectFit: 'contain',
+},
+
+footerText: {
+  fontSize: 11,
+  color: '#4a4a4a',
+  fontWeight: 500,
+},
+
+/* Bottom Orange Bar */
+bottomOrangeBar: {
+  position: 'absolute',
+  bottom: 0,
+  left: 0,
+  width: '100%',
+  height: 32,
+  backgroundColor: '#ff6b00',
+},
+
+/* Black Curved Section */
+bottomBlackCurve: {
+  position: 'absolute',
+  bottom: 0,
+  right: 0,
+
+  width: 360,
+  height: 40,
+
+  backgroundColor: '#000',
+
+  borderTopLeftRadius: 40,
+
+  justifyContent: 'center',
+  alignItems: 'flex-end',
+
+  paddingRight: 35,
+  paddingTop: 5,
+},
+
+/* CR Text */
+bottomCRText: {
+  color: '#fff',
+  fontSize: 16,
+  fontWeight: 'bold',
+},
    tableCellss: {
     paddingTop: 1,
     paddingBottom: 10,
@@ -1088,26 +1111,48 @@ export const LeaseAgreementPDF = ({ leaseData }: { leaseData: any }) => (
      
      
 
-      <View style={styles.footer}>
-        <View style={styles.footerLeft}>
-          <Text style={styles.footerSocial}>@Autoloungebh</Text>
-          <Text style={styles.footerText}>operations@autolounge.com</Text>
+      <View style={styles.footerContainer}>
+      
+        {/* Left Side */}
+        <View style={styles.footerColumn}>
+      
+          <View style={styles.footerItem}>
+            <Image src="/assets/ins.png" style={styles.footerIcon} />
+            <Text style={styles.footerText}>@AutoLoungebh</Text>
+          </View>
+      
+          <View style={styles.footerItem}>
+            <Image src="/assets/net.png" style={styles.footerIcon} />
+            <Text style={styles.footerText}>www.autolounge.com.bh</Text>
+          </View>
+      
         </View>
-        
-        <View style={styles.footerCenter}>
-          <Text style={styles.footerLink}>www.autolounge.com.bh</Text>
-          <Text style={styles.footerText}>+973 3951 0003</Text>
+      
+        {/* Right Side */}
+        <View style={styles.footerColumn}>
+      
+          <View style={styles.footerItem}>
+            <Image src="/assets/gmail.png" style={styles.footerIcon} />
+            <Text style={styles.footerText}>operations@autolounge.com</Text>
+          </View>
+      
+          <View style={styles.footerItem}>
+            <Image src="/assets/phone.png" style={styles.footerIcon} />
+            <Text style={styles.footerText}>+973 3951 0003</Text>
+          </View>
+      
         </View>
-        
-        <View style={styles.footerRight}>
-          <Text style={styles.footerBold}>CR 176932-1</Text>
-        </View>
+      
+      </View>
+      
+      {/* Bottom Design */}
+      <View style={styles.bottomOrangeBar} />
+      
+      <View style={styles.bottomBlackCurve}>
+        <Text style={styles.bottomCRText}>CR 176932-1</Text>
       </View>
 
-      {/* FOOTER */}
-      {/* <View style={styles.footers}>
-        <Text>AUTO LOUNGE W.L.L • LEASE AGREEMENT • BAHRAIN</Text>
-      </View> */}
+     
     </Page>
   </Document>
 );

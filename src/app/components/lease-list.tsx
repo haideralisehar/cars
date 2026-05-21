@@ -323,6 +323,9 @@ import { getLeases } from '@/app/api/Leases/getLeases'; // Adjust the import pat
 import {createLease} from '@/app/api/Leases/postLease';
 import {Check} from 'lucide-react';
 
+import { downloadLeaseAgreementPDF } from '@/app/Agreement_Invoices/leaseAgree';
+import { downloadLeaseInvoicePDF } from '@/app/Agreement_Invoices/leaseInvoice';
+
 interface LeaseListProps {
   onCarClick: (carId: string) => void;
    userRole: 'Admin' | 'SuperAdmin' | 'User' | 'Operations' | 'Driver' | 'Investor';
@@ -595,6 +598,7 @@ export function LeaseList({ onCarClick, userRole }: LeaseListProps) {
       try {
         setLoading(true);
         const data = await getLeases();
+        console.log("Data", data);
 
         
         // Transform API data to match your Lease type

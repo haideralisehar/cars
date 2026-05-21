@@ -474,66 +474,82 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
   },
-  footer: {
-    position: 'absolute',
-    bottom: 30,
-    left: 40,
-    right: 40,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e5e5',
-    paddingTop: 15,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  footerSection: {
-    flex: 1,
-  },
-  footerText: {
-    fontSize: 8,
-    color: '#999999',
-    textTransform: 'uppercase',
-    fontWeight: 'bold',
-  },
-  signatureLine: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e5e5',
-    width: 80,
-    marginTop: 5,
-    alignSelf: 'flex-end',
-  },
- 
-  footerLeft: {
-    flex: 1,
-  },
-  footerCenter: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  footerRight: {
-    flex: 1,
-    alignItems: 'flex-end',
-  },
-  // footerText: {
-  //   fontSize: 9,
-  //   color: '#666666',
-  //   marginBottom: 4,
-  // },
-  footerLink: {
-    fontSize: 9,
-    color: '#ff7a1a',
-    marginBottom: 4,
-  },
-  footerBold: {
-    fontSize: 9,
-    fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 4,
-  },
-  footerSocial: {
-    fontSize: 9,
-    color: '#ff7a1a',
-    marginBottom: 4,
-  },
+ footerContainer: {
+  position: 'absolute',
+  bottom: 55,
+  left: 50,
+  right: 50,
+  marginBottom:10,
+
+  borderTopWidth: 1,
+  borderTopColor: '#6e6e6e',
+
+  paddingTop: 18,
+
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'flex-start',
+},
+
+footerColumn: {
+  flexDirection: 'column',
+  gap: 14,
+},
+
+footerItem: {
+  flexDirection: 'row',
+  alignItems: 'center',
+},
+
+footerIcon: {
+  width: 22,
+  height: 22,
+  marginRight: 12,
+  objectFit: 'contain',
+},
+
+footerText: {
+  fontSize: 11,
+  color: '#4a4a4a',
+  fontWeight: 500,
+},
+
+/* Bottom Orange Bar */
+bottomOrangeBar: {
+  position: 'absolute',
+  bottom: 0,
+  left: 0,
+  width: '100%',
+  height: 32,
+  backgroundColor: '#ff6b00',
+},
+
+/* Black Curved Section */
+bottomBlackCurve: {
+  position: 'absolute',
+  bottom: 0,
+  right: 0,
+
+  width: 360,
+  height: 40,
+
+  backgroundColor: '#000',
+
+  borderTopLeftRadius: 40,
+
+  justifyContent: 'center',
+  alignItems: 'flex-end',
+
+  paddingRight: 35,
+  paddingTop: 5,
+},
+
+/* CR Text */
+bottomCRText: {
+  color: '#fff',
+  fontSize: 16,
+  fontWeight: 'bold',
+},
   footers: {
     marginTop: 30,
     textAlign: 'center',
@@ -605,37 +621,47 @@ const InvoicePDF = ({ docType, recipient, lineItems, vatEnabled, vatPercentage, 
         </View>
       </View>
 
-      {/* Footer */}
-      {/* <View style={styles.footer}>
-        <View style={styles.footerSection}>
-          <Text style={styles.footerText}>Auto Lounge W.L.L</Text>
-          <Text style={styles.footerText}>CR: 176932-1</Text>
-        </View>
-        <View style={[styles.footerSection, { textAlign: 'center' }]}>
-          <Text style={styles.footerText}>Kingdom of Bahrain</Text>
-          <Text style={styles.footerText}>Contact: 39150003</Text>
-        </View>
-        <View style={[styles.footerSection, { alignItems: 'flex-end' }]}>
-          <Text style={styles.footerText}>Authorized Signature</Text>
-          <View style={styles.signatureLine} />
-        </View>
-      </View> */}
+     
+<View style={styles.footerContainer}>
 
-      <View style={styles.footer}>
-                <View style={styles.footerLeft}>
-                  <Text style={styles.footerSocial}>@Autoloungebh</Text>
-                  <Text style={styles.footerText}>operations@autolounge.com</Text>
-                </View>
-                
-                <View style={styles.footerCenter}>
-                  <Text style={styles.footerLink}>www.autolounge.com.bh</Text>
-                  <Text style={styles.footerText}>+973 3951 0003</Text>
-                </View>
-                
-                <View style={styles.footerRight}>
-                  <Text style={styles.footerBold}>CR 176932-1</Text>
-                </View>
-              </View>
+  {/* Left Side */}
+  <View style={styles.footerColumn}>
+
+    <View style={styles.footerItem}>
+      <Image src="/assets/ins.png" style={styles.footerIcon} />
+      <Text style={styles.footerText}>@AutoLoungebh</Text>
+    </View>
+
+    <View style={styles.footerItem}>
+      <Image src="/assets/net.png" style={styles.footerIcon} />
+      <Text style={styles.footerText}>www.autolounge.com.bh</Text>
+    </View>
+
+  </View>
+
+  {/* Right Side */}
+  <View style={styles.footerColumn}>
+
+    <View style={styles.footerItem}>
+      <Image src="/assets/gmail.png" style={styles.footerIcon} />
+      <Text style={styles.footerText}>operations@autolounge.com</Text>
+    </View>
+
+    <View style={styles.footerItem}>
+      <Image src="/assets/phone.png" style={styles.footerIcon} />
+      <Text style={styles.footerText}>+973 3951 0003</Text>
+    </View>
+
+  </View>
+
+</View>
+
+{/* Bottom Design */}
+<View style={styles.bottomOrangeBar} />
+
+<View style={styles.bottomBlackCurve}>
+  <Text style={styles.bottomCRText}>CR 176932-1</Text>
+</View>
     </Page>
   </Document>
 );

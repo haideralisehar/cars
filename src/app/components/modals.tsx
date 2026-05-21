@@ -1523,7 +1523,8 @@ export function SellCarModal({ carId, isOpen, onClose, car, userRole, onRefresh 
       remainingAmount: paymentTerms.paymentType === 'Installment' ? remainingAmount() : 0,
       installmentPlan: paymentTerms.paymentType === 'Installment' ? `${paymentTerms.installmentCount} installments of BHD ${paymentTerms.installmentAmount}` : 'N/A',
       status: paymentTerms.paymentType === 'Full' ? 'Completed' : paymentTerms.paymentType === 'Installment' ? 'Pending' : 'Partial',
-    
+      isShow: true,
+      sale: null
     };
   };
 
@@ -2379,7 +2380,7 @@ export function LeaseCarModal({ carId, isOpen, onClose, car, userRole, onRefresh
       return emailRegex.test(email);
     };
 
-    const isStepOneValid = lesseeDetails.name.trim() !== '' && lesseeDetails.cpr.trim() !== '' && lesseeDetails.phone.trim() !== '' && lesseeDetails.licenseNumber.trim() !== '' && lesseeDetails.address.trim() !== '';
+    const isStepOneValid = lesseeDetails.name.trim() !== '' && lesseeDetails.cpr.trim() !== '' && lesseeDetails.phone.trim() !== '' && lesseeDetails.licenseNumber.trim() !== '';
     const isStepTwoValid = leaseTerms.leaseType.trim() !== '' && leaseTerms.leaseRate.trim() !== '' && leaseTerms.duration.trim() !== '' && leaseTerms.advanceAmount.trim() !== ''
 
     const isemail = isValidEmail(lesseeDetails.email);
@@ -2426,9 +2427,9 @@ export function LeaseCarModal({ carId, isOpen, onClose, car, userRole, onRefresh
 
       console.log('Lease confirmed', payload);
 
-      const response = await leaseCar(payload);
+      // const response = await leaseCar(payload);
 
-      console.log("API Response:", response);
+      // console.log("API Response:", response);
       setsolding(false);
 
       alert('Car leased successfully!');
