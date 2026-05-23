@@ -981,7 +981,7 @@ export const LeaseAgreementPDF = ({ leaseData }: { leaseData: any }) => (
         </View>
         <View style={styles.documentBox}>
           <Text style={styles.documentTitle}>LEASE AGREEMENT</Text>
-          <Text style={styles.documentRef}>Ref: {leaseData.agreementRef || 'REF' + Math.floor(100000 + Math.random() * 900000)}</Text>
+          <Text style={styles.documentRef}>Ref: {leaseData.agreementRef }</Text>
           <Text style={styles.documentDate}>Date: {leaseData.currentDate || new Date().toLocaleDateString()}</Text>
         
         </View>

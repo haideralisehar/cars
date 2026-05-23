@@ -742,7 +742,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 28,
     marginTop: 10,
-    marginBottom: 16,
+    marginBottom: 10,
     position: 'relative',
   },
   logo: {
@@ -816,7 +816,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e2e2e2',
     borderRadius: 14,
-    marginTop: 28,
+    marginTop: 20,
     overflow: 'hidden',
     paddingTop: 5,
   },
@@ -1214,11 +1214,13 @@ export const LeaseAgreementPDF = ({ leaseData }: { leaseData: any }) => {
                   <Text style={styles.badge}>BILLED FROM</Text>
                   <Text style={styles.partyTextBold}>Auto Lounge W.L.L</Text>
                   <Text style={styles.partyText}>CR No: 176932-1</Text>
+                  <Text style={styles.partyText}>Contact: +973 39150003</Text>
                 </View>
                 <View style={styles.partiesCell}>
                   <Text style={styles.badge}>BILLED TO</Text>
                   <Text style={styles.partyTextBold}>{leaseData.purchaserName}</Text>
                   <Text style={styles.partyText}>CPR No: {leaseData.purchaserCpr}</Text>
+                   <Text style={styles.partyText}>Contact: {leaseData.purchaserContact}</Text>
                 </View>
               </View>
             </View>

@@ -1451,8 +1451,8 @@ export function SalesList({ onCarClick }: SalesListProps) {
   // Calculate Installment Amount
   
     return {
-      ref: 'invoice - ' + Math.floor(1560000 + Math.random() * 9870000),
-      agreementRef: 'sale - ' + Math.floor(100000 + Math.random() * 900000),
+      ref: sale.referenceNo,
+      agreementRef:sale.referenceNo,
       currentDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }),
       purchaserName: sale?.purchaserName || 'N/A',
       purchaserCpr: sale?.cpr || 'N/A',

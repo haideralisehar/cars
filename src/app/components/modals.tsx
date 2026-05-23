@@ -1503,11 +1503,50 @@ export function SellCarModal({ carId, isOpen, onClose, car, userRole, onRefresh 
     return (totalPrice - advance).toFixed(2);
   };
 
+ 
+ const [referenceNumber, setReferenceNumber] = useState(null);
+    const [allReferences, setAllReferences] = useState([]);
+
+function generateReferenceNumber() {
+    const randomNum = Math.floor(1560000 + Math.random() * 9870000);
+    // Convert to string with prefix
+    return `${randomNum}`; // Returns string like "REF-7892345"
+}
+
+let referenceNumbers = [];
+
+function getReferenceNumber() {
+    if (referenceNumbers.length === 0) {
+        // Generate and store new reference number if array is empty
+        const newRef = generateReferenceNumber();
+        referenceNumbers.push(newRef);
+        return newRef; // Returns string
+    } else {
+        // Return the existing reference number(s)
+        return referenceNumbers; // Returns array of strings
+    }
+}
+
+// Initialize when modal opens
+useEffect(() => {
+    if (isOpen) {
+        // Get reference number when modal initializes
+        const ref = getReferenceNumber();
+        setReferenceNumber(ref); // ref is now a string
+        setAllReferences([...referenceNumbers]); // array of strings
+        
+        console.log('Modal initialized with reference:', ref);
+        console.log('Type of reference:', typeof ref); // Will log "string"
+        console.log('All references so far:', referenceNumbers);
+    }
+}, [isOpen]);
+
+
   const prepareLeaseDataForPDF = () => {
     return {
-      ref: 'invoice - ' + Math.floor(1560000 + Math.random() * 9870000),
+      ref:referenceNumber,
       type: invoiceGenerated ? 0 : 1,
-      agreementRef: 'sale - ' + Math.floor(100000 + Math.random() * 900000),
+      agreementRef:  referenceNumber,
       currentDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }),
       purchaserName: purchaserDetails.name,
       purchaserCpr: purchaserDetails.cpr,
@@ -1643,6 +1682,9 @@ export function SellCarModal({ carId, isOpen, onClose, car, userRole, onRefresh 
      setInvoiceGenerated(true);
     }
   };
+  
+
+
 
   const handleConfirmSale = async () => {
 
@@ -1692,6 +1734,7 @@ export function SellCarModal({ carId, isOpen, onClose, car, userRole, onRefresh 
     try {
 
       const payload = {
+        referenceNo: referenceNumber,
         carId: carId,
         purchaserName: purchaserDetails.name,
         cpr: purchaserDetails.cpr,
@@ -1708,7 +1751,7 @@ export function SellCarModal({ carId, isOpen, onClose, car, userRole, onRefresh 
         commissionAmount: paymentTerms.commissionType === 'Percentage' ? (parseFloat(paymentTerms.sellingPrice) * parseFloat(paymentTerms.commission) / 100).toFixed(2) : parseFloat(paymentTerms.commission).toFixed(2)
       }
 
-      console.log('Sale confirmed', payload);
+      console.log('Sale Payload', payload);
 
       const response = await soldCar(payload);
 
@@ -1741,6 +1784,8 @@ export function SellCarModal({ carId, isOpen, onClose, car, userRole, onRefresh 
       setsolding(false);
     }
   };
+
+ 
 
   // const handleGenerateAgreement = () => {
   //   console.log('Generating agreement...');
@@ -2205,6 +2250,8 @@ export function LeaseCarModal({ carId, isOpen, onClose, car, userRole, onRefresh
   const [step, setStep] = useState(1);
   const [solding, setsolding] = useState(false);
   const [downloadingAgreement, setDownloadingAgreement] = useState(false);
+  const [referenceNumber, setReferenceNumber] = useState(null);
+    const [allReferences, setAllReferences] = useState([]);
 
   // Step 1: Lessee Details
   const [lesseeDetails, setLesseeDetails] = useState({
@@ -2239,12 +2286,47 @@ export function LeaseCarModal({ carId, isOpen, onClose, car, userRole, onRefresh
     if (step > 1) setStep(step - 1);
   };
 
+  function generateReferenceNumber() {
+    const randomNum = Math.floor(1560000 + Math.random() * 9870000);
+    // Convert to string with prefix
+    return `${randomNum}`; // Returns string like "REF-7892345"
+}
+
+let referenceNumbers = [];
+
+function getReferenceNumber() {
+    if (referenceNumbers.length === 0) {
+        // Generate and store new reference number if array is empty
+        const newRef = generateReferenceNumber();
+        referenceNumbers.push(newRef);
+        return newRef; // Returns string
+    } else {
+        // Return the existing reference number(s)
+        return referenceNumbers; // Returns array of strings
+    }
+}
+
+// Initialize when modal opens
+useEffect(() => {
+    if (isOpen) {
+        // Get reference number when modal initializes
+        const ref = getReferenceNumber();
+        setReferenceNumber(ref); // ref is now a string
+        setAllReferences([...referenceNumbers]); // array of strings
+        
+        console.log('Modal initialized with reference:', ref);
+        console.log('Type of reference:', typeof ref); // Will log "string"
+        console.log('All references so far:', referenceNumbers);
+    }
+}, [isOpen]);
+
+
   // Prepare lease data for PDF
   const prepareLeaseDataForPDF = () => {
     return {
-      ref: 'invoice - ' + Math.floor(1560000 + Math.random() * 9870000),
+      ref: referenceNumber,
       type: invoiceGenerated ? 0 : 1,
-      agreementRef: 'lesse - ' + Math.floor(100000 + Math.random() * 900000),
+      agreementRef: referenceNumber,
       currentDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }),
       lesseeName: lesseeDetails.name,
       lesseeCpr: lesseeDetails.cpr,
@@ -2409,6 +2491,7 @@ export function LeaseCarModal({ carId, isOpen, onClose, car, userRole, onRefresh
     try {
 
       const payload = {
+        referenceNo: referenceNumber,
         carId: carId,
         fullName: lesseeDetails.name,
         cprNumber: lesseeDetails.cpr,
@@ -2427,9 +2510,9 @@ export function LeaseCarModal({ carId, isOpen, onClose, car, userRole, onRefresh
 
       console.log('Lease confirmed', payload);
 
-      // const response = await leaseCar(payload);
+      const response = await leaseCar(payload);
 
-      // console.log("API Response:", response);
+      console.log("API Response:", response);
       setsolding(false);
 
       alert('Car leased successfully!');

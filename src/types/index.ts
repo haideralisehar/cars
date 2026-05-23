@@ -236,21 +236,36 @@ export interface Sale {
   commissionType?: 'Fixed' | 'Percentage';
 }
 
+// In your types file
 export interface Lease {
   id: string;
   carId: string;
   carName: string;
+  carModel?: string;
+  carYear?: number;
+  carColor?: string;
+  carVin?: string;
   lesseeName: string;
   lesseeCpr: string;
-  leaseType: LeaseType;
+  lesseeEmail?: string;
+  lesseePhone?: string;
+  lesseeDrivingLicense?: string;
+  lesseeAddress?: string;
+  leaseType: 'Daily' | 'Monthly';
   rentAmount: number;
   startDate: string;
-  duration: number; // days or months
+  duration: number;
   nextDueDate: string;
   status: 'Active' | 'Overdue' | 'Completed';
-  installmentValue?: number; // per day/month based on leaseType
+  installmentValue?: number;
+  advancePayment?: number;
+  securityDeposit?: number;
+  totalLeaseValue?: number;
+  remainingPayment?: number;
+  commissionType?: string;
+  commissionAmount?: number;
+  leaseEndDate?: string;
 }
-
 // Expense Types
 export type ExpenseCategory = 'Office' | 'Grocery' | 'Maintenance' | 'Repair' | 'Detailing' | 'Insurance' | 'Registration' | 'Other';
 

@@ -319,7 +319,7 @@ import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
 import { Lease } from '@/types';
 import { Search, Calendar, DollarSign, Car, AlertCircle, Loader2, CheckCircle, X, MoreVertical, Wallet } from 'lucide-react';
-import { getLeases } from '@/app/api/Leases/getLeases'; // Adjust the import path as needed
+import { getLeases } from '@/app/api/Leases/getLeases';
 import {createLease} from '@/app/api/Leases/postLease';
 import {Check} from 'lucide-react';
 
@@ -328,29 +328,28 @@ import { downloadLeaseInvoicePDF } from '@/app/Agreement_Invoices/leaseInvoice';
 
 interface LeaseListProps {
   onCarClick: (carId: string) => void;
-   userRole: 'Admin' | 'SuperAdmin' | 'User' | 'Operations' | 'Driver' | 'Investor';
+  userRole: 'Admin' | 'SuperAdmin' | 'User' | 'Operations' | 'Driver' | 'Investor';
 }
-
 
 // Rent Payment Modal Component
 function RentPaymentModal({ 
   lease, 
   isOpen, 
   onClose, 
-  onConfirm ,
-  onPaymentSuccess  // New prop for refreshing data
+  onConfirm,
+  onPaymentSuccess
 }: { 
   lease: Lease | null; 
   isOpen: boolean; 
   onClose: () => void; 
   onConfirm: (leaseId: string, amount: string) => void;
-  onPaymentSuccess?: () => Promise<void>; // Optional callback for refreshing data;
+  onPaymentSuccess?: () => Promise<void>;
 }) {
   const [paymentAmount, setPaymentAmount] = useState<number>(0);
   const [paymentDate, setPaymentDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [paymentMethod, setPaymentMethod] = useState<string>('Cash');
   const [notes, setNotes] = useState<string>('');
-   const [solding, setsolding] = useState(false);
+  const [solding, setsolding] = useState(false);
 
   useEffect(() => {
     if (lease) {
@@ -360,49 +359,39 @@ function RentPaymentModal({
 
   if (!isOpen || !lease) return null;
 
-
-
   const postLease = async () => {
+    const isValid = paymentAmount !== 0 || paymentAmount < 0 && paymentDate !== '' && paymentMethod !== '';
 
-      const isValid = paymentAmount !== 0 || paymentAmount < 0 && paymentDate !== '' && paymentMethod !== '';
+    if(!isValid){
+      alert("All fields are required except note.")
+    }
 
-      if(!isValid){
-        alert("All fileds are required except note.")
-      }
-
-      try {
-
-        setsolding(true);
-
-        const payload = {
+    try {
+      setsolding(true);
+      const payload = {
         leaseId: lease.id,
         amount: lease.installmentValue || 0,
         paymentMethod: paymentMethod,
         notes: notes,
-
       }
 
-        const response = await createLease(payload);
-        console.log("Car Data:", payload);
-        console.log("Api Response: ", response)
-         // Call onConfirm to update local state
-        onConfirm(lease.id, (lease.installmentValue || 0).toString());
+      const response = await createLease(payload);
+      console.log("Car Data:", payload);
+      console.log("Api Response: ", response)
+      onConfirm(lease.id, (lease.installmentValue || 0).toString());
 
-        // Call onPaymentSuccess to refresh the entire leases list
-        if (onPaymentSuccess) {
-          await onPaymentSuccess();
-        }
-        setsolding(false);
-        onClose();
-
-      } catch (error) {
-        console.error("Failed to fetch cars:", error);
-        setsolding(false);
-      } finally {
-        setsolding(false);
-        
+      if (onPaymentSuccess) {
+        await onPaymentSuccess();
       }
-    };
+      setsolding(false);
+      onClose();
+    } catch (error) {
+      console.error("Failed to fetch cars:", error);
+      setsolding(false);
+    } finally {
+      setsolding(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -427,7 +416,7 @@ function RentPaymentModal({
           <div>
             <label className="block text-sm font-medium mb-2">Payment Amount (BHD)</label>
             <Input
-            disabled
+              disabled
               type="number"
               value={lease.installmentValue}
               onChange={(e) => setPaymentAmount(Number(e.target.value))}
@@ -479,21 +468,16 @@ function RentPaymentModal({
           </Button>
           {
             solding ? (
-                <Button disabled>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                </Button>
-              ) : (
-                <Button onClick={postLease}>
-                  <Check className="h-4 w-4 mr-2" />
-            Confirm Payment
-          </Button>
-                
-              )
-
+              <Button disabled>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              </Button>
+            ) : (
+              <Button onClick={postLease}>
+                <Check className="h-4 w-4 mr-2" />
+                Confirm Payment
+              </Button>
+            )
           }
-
-          
-          
         </div>
       </div>
     </div>
@@ -501,11 +485,19 @@ function RentPaymentModal({
 }
 
 // Dropdown Menu Component
-function ActionMenu({ lease, onRentPaid, onViewDetails, onCarClick, isAdmin }: { 
+function ActionMenu({ 
+  lease, 
+  onRentPaid, 
+  onViewDetails, 
+  onDownloadAgreement, 
+  onDownloadInvoice, 
+  isAdmin 
+}: { 
   lease: Lease; 
   onRentPaid: (lease: Lease, e: React.MouseEvent) => void;
   onViewDetails: (carId: string) => void;
-  onCarClick: (carId: string) => void;
+  onDownloadAgreement: (lease: Lease) => void;
+  onDownloadInvoice: (lease: Lease) => void;
   isAdmin: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -533,6 +525,12 @@ function ActionMenu({ lease, onRentPaid, onViewDetails, onCarClick, isAdmin }: {
       case 'viewDetails':
         onViewDetails(lease.carId);
         break;
+      case 'downloadAgreement':
+        onDownloadAgreement(lease);
+        break;
+      case 'downloadInvoice':
+        onDownloadInvoice(lease);
+        break;
     }
   };
 
@@ -551,31 +549,40 @@ function ActionMenu({ lease, onRentPaid, onViewDetails, onCarClick, isAdmin }: {
       </Button>
       
       {isOpen && (
-  <div className="absolute left-0 mt-2 w-48 bg-card border border-border rounded-md shadow-lg z-10">
-    <div className="py-1">
-     {
-      isAdmin &&
-      ( <button
-        onClick={(e) => handleAction('rentPaid', e)}
-        disabled={lease.status === 'Completed'}
-        className={`w-full text-left px-4 py-2 text-sm hover:bg-secondary/50 transition-colors flex items-center gap-2 ${
-          lease.status === 'Completed' ? 'opacity-50 cursor-not-allowed' : ''
-        }`}
-      >
-        <CheckCircle className="h-4 w-4 text-green-500" />
-        Pay Lease
-      </button>)
-     }
-      <button
-        onClick={(e) => handleAction('viewDetails', e)}
-        className="w-full text-left px-4 py-2 text-sm hover:bg-secondary/50 transition-colors flex items-center gap-2"
-      >
-        <Car className="h-4 w-4" />
-        View Car Details
-      </button>
-    </div>
-  </div>
-)}
+        <div className="absolute left-0 mt-2 w-48 bg-card border border-border rounded-md shadow-lg z-10">
+          <div className="py-1">
+            {isAdmin && (
+              <button
+                onClick={(e) => handleAction('rentPaid', e)}
+                disabled={lease.status === 'Completed'}
+                className={`w-full text-left px-4 py-2 text-sm hover:bg-secondary/50 transition-colors flex items-center gap-2 ${
+                  lease.status === 'Completed' ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                Pay Lease
+              </button>
+            )}
+            <button
+              onClick={(e) => handleAction('viewDetails', e)}
+              className="w-full text-left px-4 py-2 text-sm hover:bg-secondary/50 transition-colors flex items-center gap-2"
+            >
+              View Car Details
+            </button>
+            <button
+              onClick={(e) => handleAction('downloadAgreement', e)}
+              className="w-full text-left px-4 py-2 text-sm hover:bg-secondary/50 transition-colors flex items-center gap-2"
+            >
+              Download Agreement
+            </button>
+            <button
+              onClick={(e) => handleAction('downloadInvoice', e)}
+              className="w-full text-left px-4 py-2 text-sm hover:bg-secondary/50 transition-colors flex items-center gap-2"
+            >
+              Download Invoice
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -588,83 +595,165 @@ export function LeaseList({ onCarClick, userRole }: LeaseListProps) {
   const [selectedLease, setSelectedLease] = useState<Lease | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [downloadingAgreement, setDownloadingAgreement] = useState(false);
+  const [downloadingInvoice, setDownloadingInvoice] = useState(false);
 
-   const isAdmin = userRole === 'Admin' || userRole === 'SuperAdmin';
-    const isSuperAdmin = userRole === 'SuperAdmin';
-    const isInvestor = userRole === 'Investor';
+  const isAdmin = userRole === 'Admin' || userRole === 'SuperAdmin';
+  const isSuperAdmin = userRole === 'SuperAdmin';
+  const isInvestor = userRole === 'Investor';
+
+  const prepareLeaseDataForPDF = (lease: Lease) => {
+  // Calculate total payments made (you may need to fetch this from your API)
+  const totalPaidAmount = (lease.totalLeaseValue || 0) - (lease.remainingPayment || 0);
+  const remainingAmount = lease.remainingPayment || 0;
   
+  return {
+    ref: lease.ReferenceNumber,
+    agreementRef: lease.ReferenceNumber,
+    currentDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+    lesseeName: lease?.lesseeName || 'N/A',
+    lesseeCpr: lease?.lesseeCpr || 'N/A',
+    lesseeContact: lease?.lesseePhone || 'N/A',
+    lesseeEmail: lease?.lesseeEmail || 'N/A',
+    lesseeAddress: lease?.lesseeAddress || 'N/A',
+    lesseeDrivingLicense: lease?.lesseeDrivingLicense || 'N/A',
+    vehicleModel: lease?.carName || 'N/A',
+    vehicleYear: lease?.carYear?.toString() || '2024',
+    vehicleColor: lease?.carColor || 'White',
+    vehicleVin: lease?.carVin || 'XXXXXX',
+    rentAmount: lease.rentAmount,
+    paymentCycle: lease?.leaseType,
+    leaseDuration: lease.duration || 0,
+    startDate: lease.startDate,
+    endDate: lease.leaseEndDate,
+    nextDueDate: lease.nextDueDate,
+    advancePayment: lease.advancePayment || 0,
+    securityDeposit: lease.securityDeposit || 0,
+    totalLeaseValue: lease.totalLeaseValue || 0,
+    remainingAmount: remainingAmount,
+    totalPaidAmount: totalPaidAmount,
+    paymentStatus: lease.status,
+    monthlyRent: lease.installmentValue,
+    commissionType: lease.commissionType,
+    commissionAmount: lease.commissionAmount,
+    lease: lease,
+    isShow: false,
+    period: lease.duration,
+    leaseRate: lease.rentAmount
+  };
+};
 
-   const fetchLeases = async () => {
-      try {
-        setLoading(true);
-        const data = await getLeases();
-        console.log("Data", data);
+  const handleDownloadAgreement = async (lease: Lease) => {
+    console.log('Generating lease agreement...');
+    setDownloadingAgreement(true);
+    
+    try {
+      const leaseData = prepareLeaseDataForPDF(lease);
+      await downloadLeaseAgreementPDF(leaseData);
+      setDownloadingAgreement(false);
+    } catch (error) {
+      console.error('Error generating agreement:', error);
+      alert('Error generating lease agreement. Please try again.');
+    } finally {
+      setDownloadingAgreement(false);
+    }
+  };
 
-        
-        // Transform API data to match your Lease type
-        const transformedLeases: Lease[] = data.map((item: any) => ({
-          id: item.leaseId,
-          carId: item.carID,
-          carName: item.carName,
-          lesseeName: item.lesseeName,
-          lesseeCpr: item.cprNumber,
-          leaseType: item.leaseType,
-          rentAmount: item.rentAmount,
-          startDate: item.startDate || new Date().toISOString().split('T')[0],
-          duration: item.duration || 0,
-          nextDueDate: item.nextDueDate ? item.nextDueDate.split('T')[0] : '',
-          status: item.status,
-          installmentValue: item.installmentPerDay,
-        }));
-        
-        setLeases(transformedLeases);
-        console.log(transformedLeases)
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching leases:', err);
-        setError('Failed to load leases. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const handleDownloadInvoice = async (lease: Lease) => {
+    console.log('Generating lease invoice...');
+    setDownloadingInvoice(true);
+    
+    try {
+      const leaseData = prepareLeaseDataForPDF(lease);
+      await downloadLeaseInvoicePDF(leaseData);
+      setDownloadingInvoice(true);
+    } catch (error) {
+      console.error('Error generating invoice:', error);
+      alert('Error generating lease invoice. Please try again.');
+    } finally {
+      setDownloadingInvoice(true);
+    }
+  };
+
+ const fetchLeases = async () => {
+  try {
+    setLoading(true);
+    const data = await getLeases();
+    console.log("Data", data);
+    
+    // Transform API data to match your Lease type
+    const transformedLeases: Lease[] = data.map((item: any) => ({
+      id: item.leaseId,
+      carId: item.carID,
+      carName: `${item.carName} ${item.carModel || ''}`.trim(), // Combines make and model
+      carModel: item.carModel,
+      carYear: item.carYear,
+      carColor: item.carColor,
+      carVin: item.vin, // Changed from carVin to vin based on API response
+      lesseeName: item.lesseeName,
+      lesseeCpr: item.cprNumber,
+      lesseeEmail: item.email,
+      lesseePhone: item.phoneNumber,
+      lesseeDrivingLicense: item.drivingLicenseNumber,
+      lesseeAddress: item.address,
+      leaseType: item.leaseType,
+      rentAmount: item.rentAmount,
+      startDate: item.leaseStartDate ? item.leaseStartDate.split('T')[0] : new Date().toISOString().split('T')[0],
+      duration: item.durationDays || 0, // Changed from duration to durationDays
+      nextDueDate: item.nextDueDate ? item.nextDueDate.split('T')[0] : '',
+      status: item.status,
+      installmentValue: item.installmentPerDay,
+      advancePayment: item.advancePayment,
+      securityDeposit: item.securityDeposit,
+      totalLeaseValue: item.totalLeaseValue,
+      remainingPayment: item.remainingPayment,
+      commissionType: item.commissionType,
+      commissionAmount: item.commissionAmount,
+      leaseEndDate: item.leaseEndDate ? item.leaseEndDate.split('T')[0] : '',
+      ReferenceNumber: item.referenceNo
+    }));
+    
+    setLeases(transformedLeases);
+    console.log(transformedLeases);
+    setError(null);
+  } catch (err) {
+    console.error('Error fetching leases:', err);
+    setError('Failed to load leases. Please try again later.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Fetch leases from API
   useEffect(() => {
-
     fetchLeases();
   }, []);
 
   const handleRentPaid = (leaseId: string, amount: number) => {
-    // Here you would typically make an API call to record the payment
     console.log(`Payment recorded for lease ${leaseId}: BHD ${amount}`);
     
-    // Show success message
     setSuccessMessage(`Payment of BHD ${amount} recorded successfully!`);
     
-    // Hide success message after 3 seconds
     setTimeout(() => {
       setSuccessMessage(null);
     }, 3000);
     
-    // Update the lease's next due date (example logic)
     setLeases(prevLeases => 
       prevLeases.map(lease => {
         if (lease.id === leaseId) {
-          // Calculate next due date based on lease type
           const currentDueDate = new Date(lease.nextDueDate);
           let nextDueDate = new Date(currentDueDate);
           
           if (lease.leaseType === 'Monthly') {
             nextDueDate.setMonth(nextDueDate.getMonth() + 1);
           } else {
-            // Daily lease - add duration days
             nextDueDate.setDate(nextDueDate.getDate() + (lease.duration || 30));
           }
           
           return {
             ...lease,
             nextDueDate: nextDueDate.toISOString().split('T')[0],
-            status: 'Active' // Reset status to active if it was overdue
+            status: 'Active'
           };
         }
         return lease;
@@ -680,7 +769,6 @@ export function LeaseList({ onCarClick, userRole }: LeaseListProps) {
 
   const handleViewDetails = (carId: string) => {
     onCarClick(carId);
-   
   };
 
   const filteredLeases = leases.filter((lease) =>
@@ -690,10 +778,10 @@ export function LeaseList({ onCarClick, userRole }: LeaseListProps) {
   );
 
   // Calculate totals
-  // const totalLeases = leases.filter(l => l.status !== 'Completed').length;
   const totalLeases = leases.length;
   const activeLeases = leases.filter(l => l.status === 'Active').length;
   const overdueLeases = leases.filter(l => l.status === 'Overdue').length;
+  const completedLeases = leases.filter(l => l.status === 'Completed').length;
   const totalRevenue = leases
     .filter(l => l.status !== 'Completed')
     .reduce((sum, lease) => {
@@ -711,8 +799,8 @@ export function LeaseList({ onCarClick, userRole }: LeaseListProps) {
         return 'destructive';
       case 'Completed':
         return 'default';
-      // default:
-      //   return 'outline';
+      default:
+        return 'outline';
     }
   };
 
@@ -824,8 +912,6 @@ export function LeaseList({ onCarClick, userRole }: LeaseListProps) {
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                   <Wallet className="h-6 w-6 text-primary" />
-                  {/* <h4>BD</h4> */}
-                  
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Expected Revenue</p>
@@ -836,18 +922,18 @@ export function LeaseList({ onCarClick, userRole }: LeaseListProps) {
           </Card>
 
           <Card className="bg-card border-border">
-    <CardContent className="p-4">
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
-          <CheckCircle className="h-6 w-6 text-green-500" />
-        </div>
-        <div>
-          <p className="text-sm text-muted-foreground">Completed</p>
-          <p className="text-2xl font-bold">{totalLeases}</p>
-        </div>
-      </div>
-    </CardContent>
-  </Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
+                  <CheckCircle className="h-6 w-6 text-green-500" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Completed</p>
+                  <p className="text-2xl font-bold">{completedLeases}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Search */}
@@ -880,21 +966,21 @@ export function LeaseList({ onCarClick, userRole }: LeaseListProps) {
                     <th className="text-left py-3 px-4 font-medium text-muted-foreground">Rent Amount</th>
                     <th className="text-left py-3 px-4 font-medium text-muted-foreground">Next Due Date</th>
                     <th className="text-left py-3 px-4 font-medium text-muted-foreground">Status</th>
-                   </tr>
+                  </tr>
                 </thead>
                 <tbody>
                   {filteredLeases.map((lease) => (
                     <tr
                       key={lease.id}
                       className="border-b border-border hover:bg-secondary/50 cursor-pointer transition-colors"
-                      // onClick={() => onCarClick(lease.carId)}
                     >
-                      <td className="py-4 px-4 ml-30" onClick={(e) => e.stopPropagation()}>
+                      <td className="py-4 px-4" onClick={(e) => e.stopPropagation()}>
                         <ActionMenu 
                           lease={lease}
                           onRentPaid={openPaymentModal}
                           onViewDetails={handleViewDetails}
-                          onCarClick={onCarClick}
+                          onDownloadAgreement={handleDownloadAgreement}
+                          onDownloadInvoice={handleDownloadInvoice}
                           isAdmin={isSuperAdmin}
                         />
                       </td>
@@ -918,7 +1004,7 @@ export function LeaseList({ onCarClick, userRole }: LeaseListProps) {
                       <td className="py-4 px-4">
                         <div>
                           <p className="font-bold text-primary">
-                            BHD {lease.installmentValue.toLocaleString()}
+                            BHD {lease.installmentValue?.toLocaleString() || 0}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             per {lease.leaseType === 'Daily' ? 'day' : 'month'}
@@ -971,7 +1057,7 @@ export function LeaseList({ onCarClick, userRole }: LeaseListProps) {
           setSelectedLease(null);
         }}
         onConfirm={handleRentPaid}
-        onPaymentSuccess={fetchLeases}  // Pass the fetchLeases function here
+        onPaymentSuccess={fetchLeases}
       />
     </div>
   );

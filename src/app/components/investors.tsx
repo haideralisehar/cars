@@ -386,13 +386,14 @@
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Active Assets</span>
-                      <span className="font-medium">{investor.investmentEntries.length}</span>
+                      <span className="font-medium">{investor.activeAssets}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Total Net Profit</span>
                       <span className="font-bold text-primary">
-                        {/* BHD {investor.totalProfit.toLocaleString()} */}
-                        BHD 3000
+                        {/* Using the default value because backend did not return any net profit */}
+                        {/* BHD 3000 */}
+                        {investor.totalProfit}
                       </span>
                     </div>
                   </div>
